@@ -1,11 +1,13 @@
 "use client";
 
+import { ArrowDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-import { MessageComposer } from "@/features/cxc-ai/components/message-composer";
 import { MessageList } from "@/features/cxc-ai/components/message-list";
+import { PromptInput } from "@/features/cxc-ai/components/prompt-input";
 import { useCxcChat } from "@/features/cxc-ai/hooks/use-cxc-chat";
+import { useStickToBottom } from "@/features/cxc-ai/hooks/use-stick-to-bottom";
 import type { CxcMessageDto } from "@/server/http/contracts";
 
 type ChatShellProps = {
@@ -15,11 +17,6 @@ type ChatShellProps = {
   isNewChat?: boolean;
 };
 
-/**
- * Composes the CXC AI chat surface: header strip + scrollable message list +
- * sticky composer. Streaming, persistence, and tool plumbing live in
- * `useCxcChat`; this component is just composition.
- */
 export function ChatShell({
   chatId,
   initialMessages,
@@ -33,15 +30,16 @@ export function ChatShell({
     },
   );
   const isBusy = status === "submitted" || status === "streaming";
+  const hasMessages = messages.length > 0;
 
-  // Auto-scroll to the latest message as new content streams in.
-  const tailRef = useRef<HTMLDivElement | null>(null);
+  const { ref: scrollRef, isAtBottom, scrollToBottom } =
+    useStickToBottom<HTMLElement>();
   useEffect(() => {
-    tailRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages]);
+    if (isAtBottom) {
+      scrollToBottom("smooth");
+    }
+  }, [isAtBottom, messages, scrollToBottom]);
 
-  // Replace the URL once the first user message is sent in a new-chat session
-  // so a refresh resumes via `/cxc-ai/[chatId]`.
   const replacedRef = useRef(false);
   useEffect(() => {
     if (!isNewChat || replacedRef.current) return;
@@ -51,30 +49,67 @@ export function ChatShell({
     }
   }, [chatId, isNewChat, messages, router]);
 
-  return (
-    <div className="flex w-full flex-col gap-4 px-6 sm:px-8">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--color-border-default)] pb-4">
-        <div className="min-w-0">
-          <h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-4xl">
-            CXC AI
-          </h1>
-          <p className="mt-2 text-sm text-[var(--color-ink-500)]">
-            Answers grounded in public CardinalXchange questions and answers.
-          </p>
+  const promptStatus = mapStatus(status);
+
+  const handleSend = (text: string) => {
+    void sendMessage({ text });
+  };
+
+  if (!hasMessages) {
+    return (
+      <div className="flex h-[calc(100vh-7rem)] w-full flex-col">
+        <div className="flex flex-1 flex-col items-center justify-center px-4">
+          <div className="w-full max-w-2xl">
+            <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-5xl text-center">
+              How can I help?
+            </h1>
+            <p className="mt-3 text-center text-sm text-[var(--color-ink-500)]">
+              Answers grounded in public CardinalXchange questions and answers.
+            </p>
+            <div className="mt-8">
+              <PromptInput
+                autoFocus
+                onSend={handleSend}
+                onStop={() => stop()}
+                placeholder="Ask anything about Stanford."
+                status={promptStatus}
+              />
+            </div>
+          </div>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-[calc(100vh-7rem)] w-full flex-col">
+      <header className="border-b border-[var(--color-border-default)] pb-3">
+        <h1 className="font-serif text-2xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-3xl">
+          CXC AI
+        </h1>
       </header>
 
       <section
         aria-label="Conversation"
-        className="flex min-h-[40rem] flex-col gap-4 border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-4 py-5 sm:px-6"
+        className="relative flex flex-1 min-h-0 flex-col gap-6 overflow-y-auto py-6"
+        ref={scrollRef}
       >
         <MessageList isStreaming={isBusy} messages={messages} />
-        <div ref={tailRef} />
+        {!isAtBottom ? (
+          <button
+            aria-label="Scroll to latest"
+            className="sticky bottom-4 ml-auto inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] text-[var(--color-ink-700)] shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-[var(--color-border-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+            onClick={() => scrollToBottom("smooth")}
+            type="button"
+          >
+            <ArrowDown aria-hidden className="h-4 w-4" />
+          </button>
+        ) : null}
       </section>
 
       {error ? (
         <div
-          className="border border-[var(--color-state-danger)] bg-[var(--color-surface-base)] px-3 py-2 text-sm font-medium text-[var(--color-state-danger)]"
+          className="mb-3 border border-[var(--color-state-danger)] bg-[var(--color-surface-base)] px-3 py-2 text-sm font-medium text-[var(--color-state-danger)]"
           role="alert"
         >
           CXC AI could not finish that response.{" "}
@@ -89,15 +124,25 @@ export function ChatShell({
         </div>
       ) : null}
 
-      <MessageComposer
-        busy={isBusy}
-        onSend={(text) => {
-          void sendMessage({ text });
-        }}
-        onStop={() => stop()}
-      />
+      <div className="border-t border-[var(--color-border-default)] py-3">
+        <PromptInput
+          onSend={handleSend}
+          onStop={() => stop()}
+          placeholder="Ask a follow-up…"
+          status={promptStatus}
+        />
+      </div>
     </div>
   );
+}
+
+function mapStatus(
+  status: ReturnType<typeof useCxcChat>["status"],
+): "ready" | "submitted" | "streaming" | "error" {
+  if (status === "submitted") return "submitted";
+  if (status === "streaming") return "streaming";
+  if (status === "error") return "error";
+  return "ready";
 }
 
 export default ChatShell;

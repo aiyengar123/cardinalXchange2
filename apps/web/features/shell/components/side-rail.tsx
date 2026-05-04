@@ -15,7 +15,7 @@ export function SideRail() {
       className="hidden w-[300px] shrink-0 py-4 pl-2 xl:block"
     >
       <div className="flex flex-col gap-4">
-        <div className="rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-4">
+        <div className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-4">
           <h2 className="text-sm font-semibold tracking-tight text-[var(--color-ink-900)]">
             About CardinalXchange
           </h2>
@@ -25,7 +25,7 @@ export function SideRail() {
           </p>
         </div>
 
-        <div className="rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-4">
+        <div className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-4">
           <h2 className="text-sm font-semibold tracking-tight text-[var(--color-ink-900)]">
             Tags
           </h2>

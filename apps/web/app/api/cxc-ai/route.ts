@@ -1,6 +1,9 @@
 import type { UIMessage } from "ai";
 
-import { getLatestUserText } from "@/server/cxc-ai/agents/cxc.agent";
+import {
+  getLatestUserText,
+  isTrivialQuery,
+} from "@/server/cxc-ai/agents/cxc.agent";
 import {
   ensureAiChatSession,
   streamCxcAiTurn,
@@ -22,10 +25,12 @@ export async function POST(request: Request) {
     // re-type after validation rather than narrowing every variant.
     const messages = parsed.messages as unknown as UIMessage[];
     const latestUserText = getLatestUserText(messages);
-    const sources = await retrievePublicQuestionAnswerSources({
-      query: latestUserText,
-      limit: 6,
-    });
+    const sources = isTrivialQuery(latestUserText)
+      ? []
+      : await retrievePublicQuestionAnswerSources({
+          query: latestUserText,
+          limit: 6,
+        });
 
     // Make sure the session row exists before streaming begins so the rail
     // can pick up new conversations on refresh. Full message + source

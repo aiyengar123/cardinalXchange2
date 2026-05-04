@@ -12,17 +12,41 @@
 
 export type RailTopic = {
   /** stable id used for active-state matching against the route. */
-  id: "home" | "questions" | "tags" | "cxc-ai";
+  id: "home" | "questions" | "ask" | "cxc-ai" | "tags";
   label: string;
   href: string;
 };
 
-export const railTopics: ReadonlyArray<RailTopic> = [
-  { id: "home", label: "Home", href: "/" },
-  { id: "questions", label: "Questions", href: "/questions" },
-  { id: "tags", label: "Tags", href: "/questions#tags" },
-  { id: "cxc-ai", label: "CXC AI", href: "/cxc-ai" },
+/**
+ * The left rail is split into sections separated by hairline dividers
+ * (Stack Overflow style). Currently three groups: landing, forum core,
+ * and the AI mode.
+ */
+export type RailSection = {
+  items: ReadonlyArray<RailTopic>;
+};
+
+export const railSections: ReadonlyArray<RailSection> = [
+  {
+    items: [{ id: "home", label: "Home", href: "/" }],
+  },
+  {
+    items: [
+      { id: "questions", label: "Questions", href: "/questions" },
+      { id: "ask", label: "Ask", href: "/ask" },
+      { id: "tags", label: "Tags", href: "/questions#tags" },
+    ],
+  },
+  {
+    items: [{ id: "cxc-ai", label: "CXC AI", href: "/cxc-ai" }],
+  },
 ];
+
+/** Flat view of every rail item, in render order. Kept for backward
+ * compatibility with code that doesn't care about grouping. */
+export const railTopics: ReadonlyArray<RailTopic> = railSections.flatMap(
+  (section) => section.items,
+);
 
 export type TopicTag = {
   slug: string;

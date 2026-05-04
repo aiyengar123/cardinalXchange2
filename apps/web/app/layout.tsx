@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
-import { mono, sans, serif } from "./fonts";
+import { mono, sans } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#8c1515",
+  themeColor: "#c8102e",
 };
 
 export default function RootLayout({
@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${serif.variable} ${mono.variable}`}
+      className={`${sans.variable} ${mono.variable}`}
     >
       <body>{children}</body>
     </html>

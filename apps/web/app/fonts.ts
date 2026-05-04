@@ -1,20 +1,15 @@
-import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 
 /**
- * Font wiring for the web app. Each family is loaded via `next/font` so we
- * never depend on a CDN, and exposed as a CSS variable consumed by
- * `globals.css` and the `typography` token in `@cardinalxchange/ui`.
+ * Font wiring for the web app. Loaded via `next/font` so we never depend
+ * on a CDN. Inter is the single display + body family — the legacy
+ * `font-serif` class is aliased to Inter inside `globals.css` so existing
+ * usage keeps rendering without per-file edits.
  */
 
 export const sans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap",
-});
-
-export const serif = Source_Serif_4({
-  subsets: ["latin"],
-  variable: "--font-serif",
   display: "swap",
 });
 

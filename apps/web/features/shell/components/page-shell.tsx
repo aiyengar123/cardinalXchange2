@@ -17,6 +17,12 @@ type PageShellProps = {
   sideRail?: ReactNode | null;
   /** Optional override for main content max-width. Default `max-w-[720px]`. */
   mainMaxWidthClass?: string;
+  /**
+   * Optional override for the outer container alignment + max-width. Default
+   * centers at `mx-auto max-w-[1264px]`. Pages that want to anchor closer to
+   * the left wall (e.g. /cxc-ai) can pass a custom class.
+   */
+  containerClassName?: string;
 };
 
 /**
@@ -37,15 +43,23 @@ export function PageShell({
   secondaryRail,
   sideRail,
   mainMaxWidthClass,
+  containerClassName,
 }: PageShellProps) {
   const resolvedSideRail = sideRail === undefined ? <SideRail /> : sideRail;
   const resolvedMainMaxWidth =
-    mainMaxWidthClass ?? (secondaryRail ? "max-w-none" : "max-w-[720px]");
+    mainMaxWidthClass ?? (secondaryRail ? "max-w-none" : "max-w-[860px]");
+  const resolvedContainer =
+    containerClassName ?? "mx-auto max-w-[1264px]";
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--color-surface-base)] text-[var(--color-ink-900)]">
       <TopCommandBar />
-      <div className="mx-auto flex w-full max-w-[1264px] flex-1 min-h-0 gap-6 px-4 sm:px-6">
+      <div
+        className={cn(
+          "flex w-full flex-1 min-h-0 gap-16 px-4 sm:px-6",
+          resolvedContainer,
+        )}
+      >
         <TopicRail />
         {secondaryRail}
         <main className={cn("flex-1 min-w-0 py-6", resolvedMainMaxWidth)}>

@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { AskForm } from "@/features/ask";
 import type { CreateQuestionInput } from "@/server/http/contracts";
 
@@ -14,23 +12,14 @@ export default async function AskQuestionPage({
   const draft = decodeDraft(params.draft);
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 sm:px-8">
-      <nav aria-label="Breadcrumb" className="mb-4">
-        <Link
-          className="text-xs font-medium text-[var(--color-ink-500)] transition-colors duration-150 ease-out hover:text-[var(--color-ink-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
-          href="/questions"
-        >
-          Back to questions
-        </Link>
-      </nav>
-
-      <header className="mb-6 border-b border-[var(--color-border-default)] pb-4">
+    <div className="w-full">
+      <header className="mb-6">
         <h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-4xl">
           Ask a Question
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-500)]">
-          Get help from the Stanford community. Be specific so a classmate can
-          give a useful answer.
+          Get help from the Stanford community by asking a clear, detailed
+          question.
         </p>
       </header>
 

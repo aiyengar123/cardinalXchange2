@@ -3,10 +3,18 @@ import type { ReactNode } from "react";
 import { PageShell } from "@/features/shell";
 
 /**
- * Default forum shell: cardinal-red top bar, TopicRail on the left, the
- * 720px-capped main column, and the SideRail on the right. Used for the
- * questions feed, question detail, and the ask form.
+ * Forum shell: white top bar, TopicRail on the left, no right SideRail.
+ * Container is centered with mx-auto so whitespace flows symmetrically
+ * outside the content on wide viewports — Stack Overflow style.
  */
 export default function ForumLayout({ children }: { children: ReactNode }) {
-  return <PageShell>{children}</PageShell>;
+  return (
+    <PageShell
+      containerClassName="mx-auto max-w-[1600px] px-4 sm:px-6"
+      mainMaxWidthClass="max-w-none"
+      sideRail={null}
+    >
+      {children}
+    </PageShell>
+  );
 }

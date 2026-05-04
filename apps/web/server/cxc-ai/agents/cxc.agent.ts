@@ -2,24 +2,26 @@ import { stepCountIs, tool, type UIMessage } from "ai";
 import { z } from "zod";
 
 import type { AiChatSource, AskCommunityDraft } from "@/server/http/contracts";
+import { getModelName } from "@/server/cxc-ai/agents/model-registry";
 import {
   askCommunityToolDescription,
   askCommunityToolName,
   buildSystemPrompt,
   formatSourcesForPrompt,
 } from "@/server/cxc-ai/agents/prompts";
+import { createTaskTool } from "@/server/cxc-ai/agents/tools/task.tool";
 import { retrievePublicQuestionAnswerSources } from "@/server/cxc-ai/services/retrieval.service";
 
-export const cxcAiModelName = process.env.OPENAI_MODEL ?? "gpt-5-mini";
+export const cxcAiModelName = getModelName("chat-agent");
 export const cxcAiMaxDuration = 30;
-export const cxcAiStopWhen = stepCountIs(3);
+export const cxcAiStopWhen = stepCountIs(15);
 
 export function buildCxcAiSystemPrompt(sources: AiChatSource[]): string {
   return buildSystemPrompt(sources);
 }
 
-export function createCxcAiTools() {
-  return {
+export function createCxcAiTools(options: { chatId?: string } = {}) {
+  const baseTools = {
     search_cxc_sources: tool({
       description:
         "Search read-only public CardinalXchange Questions and Answers for source-backed context.",
@@ -49,6 +51,13 @@ export function createCxcAiTools() {
       }),
     }),
   };
+
+  if (options.chatId) {
+    const taskTool = createTaskTool({ parentChatId: options.chatId });
+    return { ...baseTools, Task: taskTool };
+  }
+
+  return baseTools;
 }
 
 export function getLatestUserText(messages: UIMessage[]): string {
@@ -67,25 +76,34 @@ export function buildFallbackAnswer(
   sources: AiChatSource[],
 ): string {
   if (sources.length === 0) {
-    return [
-      "I do not have enough public CardinalXchange question or answer context to answer this confidently.",
-      userText ? `Question: ${userText}` : "",
-      "Use Ask the Community to collect student experience before relying on an answer.",
-    ]
-      .filter(Boolean)
-      .join("\n\n");
+    if (isTrivialQuery(userText)) {
+      return "Hi — CXC AI is not connected to a model provider right now, so I can't answer freely. Try asking a specific Stanford question (housing, courses, advising, dining), and I'll surface relevant public CardinalXchange threads.";
+    }
+    return "I couldn't find any public CardinalXchange threads for that, and I'm not connected to a model provider right now. Try Ask the Community to start a fresh thread.";
   }
 
-  const sourceLines = sources
-    .slice(0, 4)
-    .map((source) => `[${source.label}: ${source.title}] ${source.snippet}`)
-    .join("\n\n");
-
-  return [
-    "I found related public CardinalXchange context, but no model provider is configured, so this is an extractive draft.",
-    sourceLines,
-    "Treat these sources as starting points. Ask the Community if you need current student-specific experience.",
-  ].join("\n\n");
+  return "I'm not connected to a model provider right now, so I can't synthesize a custom answer. Here are the public CardinalXchange threads that look most relevant — they may have what you need.";
 }
+
+function isTrivialQuery(text: string): boolean {
+  const trimmed = text.trim().toLowerCase();
+  if (trimmed.length < 4) return true;
+  const greetings = new Set([
+    "hi",
+    "hey",
+    "hello",
+    "yo",
+    "sup",
+    "test",
+    "ping",
+    "thanks",
+    "thank you",
+    "ok",
+    "okay",
+  ]);
+  return greetings.has(trimmed);
+}
+
+export { isTrivialQuery };
 
 export { formatSourcesForPrompt };

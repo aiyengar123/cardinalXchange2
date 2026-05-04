@@ -30,16 +30,16 @@ export function QuestionFeed({ questions, filter }: QuestionFeedProps) {
   }
 
   return (
-    <section
-      aria-labelledby="questions-feed-heading"
-      className="border border-[var(--color-border-default)] bg-[var(--color-surface-base)]"
-    >
+    <section aria-labelledby="questions-feed-heading">
       <h2 className="sr-only" id="questions-feed-heading">
         Questions
       </h2>
-      <ul className="divide-y divide-[var(--color-ink-100)]">
+      <ul className="flex flex-col gap-3">
         {questions.map((question) => (
-          <li key={question.id}>
+          <li
+            className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)]"
+            key={question.id}
+          >
             <QuestionRow question={question} />
           </li>
         ))}
@@ -56,7 +56,7 @@ export function QuestionFeedEmptyState({
   const filtered = Boolean(filter?.tag || filter?.query);
 
   return (
-    <section className="border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-6 py-12 text-center">
+    <section className="mt-6 rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-6 py-12 text-center">
       {filtered ? (
         <>
           <p className="text-base font-medium text-[var(--color-ink-900)]">

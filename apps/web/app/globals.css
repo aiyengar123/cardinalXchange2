@@ -11,11 +11,11 @@
 /* ------------------------------------------------------------------ */
 
 :root {
-  /* color · cardinal */
-  --color-cardinal-50: #fff1f1;
-  --color-cardinal-500: #8c1515;
-  --color-cardinal-600: #7a1212;
-  --color-cardinal-700: #5e0e0e;
+  /* color · cardinal — vibrant red with cool (cardinal/cherry) undertone, not orange */
+  --color-cardinal-50: #fdecef;
+  --color-cardinal-500: #c8102e;
+  --color-cardinal-600: #a30c25;
+  --color-cardinal-700: #7a091c;
 
   /* color · ink */
   --color-ink-900: #0a0a0a;
@@ -32,7 +32,7 @@
   /* color · border */
   --color-border-default: #e6e6e6;
   --color-border-strong: #d0d0d0;
-  --color-border-focus: #8c1515;
+  --color-border-focus: #c8102e;
 
   /* color · state */
   --color-state-danger: #b00020;
@@ -41,6 +41,13 @@
   /* radius */
   --radius-none: 0px;
   --radius-hairline: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
   --radius-title: 6px;
 
   /* spacing (4px scale) */
@@ -89,8 +96,15 @@
 /* ------------------------------------------------------------------ */
 
 @theme inline {
+  /* Spacing base — Tailwind v4 multiplies this by the utility number to
+     generate gap/margin/padding/space-* utilities. Without this token, none
+     of `gap-2 / m-4 / p-6 / space-y-3` etc. produce CSS at all. */
+  --spacing: 0.25rem;
+
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-serif), ui-serif, Georgia, serif;
+  /* All headings render in Inter (the sans family). The serif slot stays
+     defined as an alias of sans so legacy `font-serif` classes still work. */
+  --font-serif: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
 
   --color-cardinal-50: var(--color-cardinal-50);
@@ -114,6 +128,13 @@
 
   --radius-none: var(--radius-none);
   --radius-hairline: var(--radius-hairline);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+  --radius-full: var(--radius-full);
   --radius-title: var(--radius-title);
 }
 
@@ -148,13 +169,9 @@ body {
     "calt" 1;
 }
 
-/* Square-corner default everywhere. Primitives that need `hairline` or
-   `title` opt in explicitly. */
-*,
-*::before,
-*::after {
-  border-radius: var(--radius-none);
-}
+/* Removed the global `* { border-radius: 0 }` override that was squaring
+   every element regardless of `rounded-*` Tailwind utilities. Components
+   now get the radius they specify via classes. */
 
 ::selection {
   background: var(--color-cardinal-500);

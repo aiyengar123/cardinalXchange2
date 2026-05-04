@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type KeyboardEvent,
@@ -24,10 +26,12 @@ type ApiResponse =
   | { question: QuestionDetailDto }
   | { error?: { code?: string; message?: string } };
 
+const MAX_TAGS = 5;
+
 /**
- * The Ask a Question form. Square inputs, 2px cardinal-red focus ring (the
- * primitive defaults already implement that). Posts via fetch — no server
- * action so the legacy `app/questions/actions.ts` can be removed.
+ * Ask a Question form. Square inputs with a 2px cardinal-red focus ring,
+ * a markdown toolbar over the Details textarea, Cancel + Submit Question
+ * actions on the bottom row.
  */
 export function AskForm({ initialDraft }: AskFormProps) {
   const router = useRouter();
@@ -45,6 +49,8 @@ export function AskForm({ initialDraft }: AskFormProps) {
     form?: string;
   }>({});
 
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+
   // Re-hydrate when the draft prop changes (e.g. arriving from CXC AI).
   useEffect(() => {
     if (!initialDraft) {
@@ -55,23 +61,20 @@ export function AskForm({ initialDraft }: AskFormProps) {
     if (initialDraft.tags) setTags(sanitizeInitialTags(initialDraft.tags));
   }, [initialDraft]);
 
-  const remainingTagSlots = Math.max(0, 8 - tags.length);
+  const remainingTagSlots = Math.max(0, MAX_TAGS - tags.length);
 
-  const commitTag = useCallback(
-    (value: string) => {
-      const cleaned = value.trim().replace(/^,+|,+$/g, "").trim();
-      if (!cleaned) {
-        return;
-      }
-      setTags((prev) => {
-        if (prev.length >= 8) return prev;
-        if (prev.includes(cleaned)) return prev;
-        return [...prev, cleaned];
-      });
-      setTagDraft("");
-    },
-    [],
-  );
+  const commitTag = useCallback((value: string) => {
+    const cleaned = value.trim().replace(/^,+|,+$/g, "").trim();
+    if (!cleaned) {
+      return;
+    }
+    setTags((prev) => {
+      if (prev.length >= MAX_TAGS) return prev;
+      if (prev.includes(cleaned)) return prev;
+      return [...prev, cleaned];
+    });
+    setTagDraft("");
+  }, []);
 
   const handleTagKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
@@ -91,6 +94,72 @@ export function AskForm({ initialDraft }: AskFormProps) {
     setTags((prev) => prev.filter((entry) => entry !== tag));
   }, []);
 
+  const wrapBodySelection = useCallback(
+    (left: string, right: string = left) => {
+      const ta = bodyRef.current;
+      if (!ta) return;
+      const start = ta.selectionStart ?? body.length;
+      const end = ta.selectionEnd ?? body.length;
+      const selected = body.slice(start, end);
+      const next = `${body.slice(0, start)}${left}${selected}${right}${body.slice(end)}`;
+      setBody(next);
+      requestAnimationFrame(() => {
+        ta.focus();
+        const cursorStart = start + left.length;
+        const cursorEnd = cursorStart + selected.length;
+        ta.setSelectionRange(cursorStart, cursorEnd);
+      });
+    },
+    [body],
+  );
+
+  const prefixBodyLines = useCallback(
+    (prefixFn: (lineIndex: number) => string) => {
+      const ta = bodyRef.current;
+      if (!ta) return;
+      const start = ta.selectionStart ?? 0;
+      const end = ta.selectionEnd ?? 0;
+      const before = body.slice(0, start);
+      const selected = body.slice(start, end) || "";
+      const after = body.slice(end);
+      const lineStart = before.lastIndexOf("\n") + 1;
+      const head = body.slice(0, lineStart);
+      const block = body.slice(lineStart, end);
+      const lines = block.length === 0 ? [""] : block.split("\n");
+      const decorated = lines
+        .map((line, i) => `${prefixFn(i)}${line}`)
+        .join("\n");
+      const next = `${head}${decorated}${after}`;
+      setBody(next);
+      requestAnimationFrame(() => {
+        ta.focus();
+        const newEnd = head.length + decorated.length;
+        ta.setSelectionRange(head.length, newEnd);
+      });
+      // selected is intentionally referenced so downstream callers can extend
+      // this helper to return the slice; current callers only need the side
+      // effect.
+      void selected;
+    },
+    [body],
+  );
+
+  const insertLink = useCallback(() => {
+    const ta = bodyRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart ?? body.length;
+    const end = ta.selectionEnd ?? body.length;
+    const selected = body.slice(start, end) || "link text";
+    const insertion = `[${selected}](https://)`;
+    const next = `${body.slice(0, start)}${insertion}${body.slice(end)}`;
+    setBody(next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      const urlStart = start + selected.length + 3; // past `[text](`
+      ta.setSelectionRange(urlStart, urlStart + 8); // select `https://`
+    });
+  }, [body]);
+
   const onSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -100,7 +169,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
         nextErrors.title = "Title is required.";
       }
       if (!body.trim()) {
-        nextErrors.body = "Body is required.";
+        nextErrors.body = "Details are required.";
       }
       if (nextErrors.title || nextErrors.body) {
         setFieldErrors(nextErrors);
@@ -111,7 +180,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
       // Commit a pending tag before submit if the user typed one without
       // pressing Enter — common UX expectation.
       const finalTags = tagDraft.trim()
-        ? Array.from(new Set([...tags, tagDraft.trim()])).slice(0, 8)
+        ? Array.from(new Set([...tags, tagDraft.trim()])).slice(0, MAX_TAGS)
         : tags;
 
       const payload: CreateQuestionInput = {
@@ -134,9 +203,6 @@ export function AskForm({ initialDraft }: AskFormProps) {
           const message =
             (data && "error" in data && data.error?.message) ||
             "Could not post that question. Try again in a moment.";
-          // Server-side zod errors arrive as `field: message`. Map title/body
-          // back to the inline field error so the user sees the indicator on
-          // the right input.
           if (message.startsWith("title:")) {
             setFieldErrors({ title: message.replace(/^title:\s*/, "") });
           } else if (message.startsWith("body:")) {
@@ -162,7 +228,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
         setSubmitting(false);
       }
     },
-    [body, fieldErrors, router, tagDraft, tags, title],
+    [body, router, tagDraft, tags, title],
   );
 
   const titleId = "ask-title";
@@ -176,7 +242,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
     () =>
       remainingTagSlots === 0
         ? "Tag limit reached"
-        : "Type a topic and press Enter or comma",
+        : `Add up to ${MAX_TAGS} tags (e.g. eduroam, access, dataviz)`,
     [remainingTagSlots],
   );
 
@@ -193,7 +259,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
           aria-describedby={fieldErrors.title ? titleErrorId : undefined}
           aria-invalid={fieldErrors.title ? "true" : undefined}
           autoComplete="off"
-          className={`block h-10 w-full border bg-[var(--color-surface-base)] px-3 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:outline-none focus:ring-2 focus:ring-inset ${
+          className={`block h-10 w-full rounded-md border bg-[var(--color-surface-base)] px-3 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:outline-none focus:ring-2 focus:ring-inset ${
             fieldErrors.title
               ? "border-[var(--color-state-danger)] focus:border-[var(--color-state-danger)] focus:ring-[var(--color-state-danger)]"
               : "border-[var(--color-border-default)] focus:border-[var(--color-border-focus)] focus:ring-[var(--color-border-focus)]"
@@ -208,7 +274,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
               setFieldErrors((prev) => ({ ...prev, title: undefined }));
             }
           }}
-          placeholder="What is your question?"
+          placeholder="Summarize your question in one line"
           required
           value={title}
         />
@@ -222,7 +288,8 @@ export function AskForm({ initialDraft }: AskFormProps) {
           </p>
         ) : (
           <p className="text-xs text-[var(--color-ink-500)]">
-            One sentence, focused on a single ask.
+            Be specific and imagine you&apos;re asking a question to another
+            person.
           </p>
         )}
       </div>
@@ -232,30 +299,105 @@ export function AskForm({ initialDraft }: AskFormProps) {
           className="text-sm font-medium text-[var(--color-ink-900)]"
           htmlFor={bodyId}
         >
-          Body
+          Details
         </label>
-        <textarea
-          aria-describedby={fieldErrors.body ? bodyErrorId : undefined}
-          aria-invalid={fieldErrors.body ? "true" : undefined}
-          className={`block min-h-48 w-full border bg-[var(--color-surface-base)] px-3 py-2 text-sm leading-relaxed text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:outline-none focus:ring-2 focus:ring-inset ${
+        <div
+          className={`overflow-hidden rounded-md border ${
             fieldErrors.body
-              ? "border-[var(--color-state-danger)] focus:border-[var(--color-state-danger)] focus:ring-[var(--color-state-danger)]"
-              : "border-[var(--color-border-default)] focus:border-[var(--color-border-focus)] focus:ring-[var(--color-border-focus)]"
-          }`}
-          disabled={submitting}
-          id={bodyId}
-          maxLength={5000}
-          name="body"
-          onChange={(event) => {
-            setBody(event.target.value);
-            if (fieldErrors.body) {
-              setFieldErrors((prev) => ({ ...prev, body: undefined }));
-            }
-          }}
-          placeholder="Include what you have tried, what would make an answer useful, and any relevant constraints."
-          required
-          value={body}
-        />
+              ? "border-[var(--color-state-danger)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-state-danger)]"
+              : "border-[var(--color-border-default)] focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-border-focus)]"
+          } bg-[var(--color-surface-base)]`}
+        >
+          <div
+            aria-label="Formatting"
+            className="flex flex-wrap items-center gap-1 border-b border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-2 py-1.5"
+            role="toolbar"
+          >
+            <ToolbarButton
+              disabled={submitting}
+              label="Bold"
+              onAction={() => wrapBodySelection("**")}
+            >
+              <span className="font-bold">B</span>
+            </ToolbarButton>
+            <ToolbarButton
+              disabled={submitting}
+              label="Italic"
+              onAction={() => wrapBodySelection("*")}
+            >
+              <span className="font-serif italic">I</span>
+            </ToolbarButton>
+            <ToolbarButton
+              disabled={submitting}
+              label="Inline code"
+              onAction={() => wrapBodySelection("`")}
+            >
+              <CodeIcon />
+            </ToolbarButton>
+            <ToolbarButton
+              disabled={submitting}
+              label="Link"
+              onAction={insertLink}
+            >
+              <LinkIcon />
+            </ToolbarButton>
+            <ToolbarDivider />
+            <ToolbarButton
+              disabled={submitting}
+              label="Bulleted list"
+              onAction={() => prefixBodyLines(() => "- ")}
+            >
+              <UnorderedListIcon />
+            </ToolbarButton>
+            <ToolbarButton
+              disabled={submitting}
+              label="Numbered list"
+              onAction={() => prefixBodyLines((i) => `${i + 1}. `)}
+            >
+              <OrderedListIcon />
+            </ToolbarButton>
+            <ToolbarDivider />
+            <ToolbarButton
+              disabled={submitting}
+              label="Undo"
+              onAction={() => {
+                bodyRef.current?.focus();
+                document.execCommand("undo");
+              }}
+            >
+              <UndoIcon />
+            </ToolbarButton>
+            <ToolbarButton
+              disabled={submitting}
+              label="Redo"
+              onAction={() => {
+                bodyRef.current?.focus();
+                document.execCommand("redo");
+              }}
+            >
+              <RedoIcon />
+            </ToolbarButton>
+          </div>
+          <textarea
+            aria-describedby={fieldErrors.body ? bodyErrorId : undefined}
+            aria-invalid={fieldErrors.body ? "true" : undefined}
+            className="block min-h-56 w-full resize-y bg-transparent px-3 py-3 text-sm leading-relaxed text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:outline-none"
+            disabled={submitting}
+            id={bodyId}
+            maxLength={5000}
+            name="body"
+            onChange={(event) => {
+              setBody(event.target.value);
+              if (fieldErrors.body) {
+                setFieldErrors((prev) => ({ ...prev, body: undefined }));
+              }
+            }}
+            placeholder="Provide all the details someone would need to answer your question. Include context, what you've tried, relevant examples, and any error messages."
+            ref={bodyRef}
+            required
+            value={body}
+          />
+        </div>
         {fieldErrors.body ? (
           <p
             className="text-xs font-medium text-[var(--color-state-danger)]"
@@ -274,10 +416,10 @@ export function AskForm({ initialDraft }: AskFormProps) {
         >
           Tags
         </label>
-        <div className="flex min-h-10 flex-wrap items-center gap-2 border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-2 py-1.5 focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-border-focus)]">
+        <div className="flex min-h-10 flex-wrap items-center gap-2 rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-2 py-1.5 focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-border-focus)]">
           {tags.map((tag) => (
             <span
-              className="inline-flex items-center gap-1 border border-[var(--color-border-default)] bg-[var(--color-ink-50)] px-2 py-0.5 text-xs font-medium leading-none text-[var(--color-ink-700)]"
+              className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border-default)] bg-[var(--color-ink-50)] px-2 py-0.5 text-xs font-medium leading-none text-[var(--color-ink-700)]"
               key={tag}
             >
               {tag}
@@ -306,8 +448,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
           />
         </div>
         <p className="text-xs text-[var(--color-ink-500)]">
-          Up to 8 generic topics. No course names. {remainingTagSlots} slot
-          {remainingTagSlots === 1 ? "" : "s"} left.
+          Use specific tags to help others find your question.
         </p>
       </div>
 
@@ -321,16 +462,187 @@ export function AskForm({ initialDraft }: AskFormProps) {
         </p>
       ) : null}
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border-default)] pt-4">
+        <Link
+          aria-disabled={submitting}
+          className="inline-flex h-9 items-center justify-center rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-4 text-sm font-medium text-[var(--color-ink-700)] transition-colors duration-150 ease-out hover:border-[var(--color-border-strong)] hover:text-[var(--color-ink-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2"
+          href="/questions"
+        >
+          Cancel
+        </Link>
         <button
           className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-4 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={submitting}
           type="submit"
         >
-          {submitting ? "Posting…" : "Post Question"}
+          {submitting ? "Submitting…" : "Submit Question"}
         </button>
       </div>
     </form>
+  );
+}
+
+function ToolbarButton({
+  children,
+  disabled,
+  label,
+  onAction,
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+  label: string;
+  onAction: () => void;
+}) {
+  return (
+    <button
+      aria-label={label}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--color-ink-700)] transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] hover:text-[var(--color-ink-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] disabled:cursor-not-allowed disabled:opacity-40"
+      disabled={disabled}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onAction();
+        }
+      }}
+      onMouseDown={(event) => {
+        // Prevent the textarea from losing focus (and thus its selection
+        // range) before the action runs. Without this, "Bold" wraps the
+        // empty cursor position instead of the highlighted text.
+        event.preventDefault();
+        if (disabled) return;
+        onAction();
+      }}
+      tabIndex={disabled ? -1 : 0}
+      title={label}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
+function ToolbarDivider() {
+  return (
+    <span
+      aria-hidden="true"
+      className="mx-1 h-4 w-px bg-[var(--color-border-default)]"
+    />
+  );
+}
+
+function CodeIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+    </svg>
+  );
+}
+
+function LinkIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
+function UnorderedListIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <line x1="8" x2="21" y1="6" y2="6" />
+      <line x1="8" x2="21" y1="12" y2="12" />
+      <line x1="8" x2="21" y1="18" y2="18" />
+      <line x1="3" x2="3.01" y1="6" y2="6" />
+      <line x1="3" x2="3.01" y1="12" y2="12" />
+      <line x1="3" x2="3.01" y1="18" y2="18" />
+    </svg>
+  );
+}
+
+function OrderedListIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <line x1="10" x2="21" y1="6" y2="6" />
+      <line x1="10" x2="21" y1="12" y2="12" />
+      <line x1="10" x2="21" y1="18" y2="18" />
+      <path d="M4 6h1v4" />
+      <path d="M4 10h2" />
+      <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" />
+    </svg>
+  );
+}
+
+function UndoIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M3 7v6h6" />
+      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.7 2.96L3 13" />
+    </svg>
+  );
+}
+
+function RedoIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M21 7v6h-6" />
+      <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6.7 2.96L21 13" />
+    </svg>
   );
 }
 
@@ -343,7 +655,7 @@ function sanitizeInitialTags(value: unknown): string[] {
     if (!trimmed) continue;
     if (cleaned.includes(trimmed)) continue;
     cleaned.push(trimmed);
-    if (cleaned.length >= 8) break;
+    if (cleaned.length >= MAX_TAGS) break;
   }
   return cleaned;
 }

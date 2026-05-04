@@ -20,6 +20,7 @@ export default async function CxcAiLayout({
 
   return (
     <PageShell
+      containerClassName="mx-auto max-w-[1600px] px-4 sm:px-6"
       mainMaxWidthClass="max-w-none"
       secondaryRail={<ChatHistoryRail sessions={sessions} />}
       sideRail={null}

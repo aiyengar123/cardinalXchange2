@@ -11,7 +11,15 @@ type ChatHistoryRailProps = {
   sessions: AiChatSession[];
 };
 
+type GroupKey = "today" | "week" | "older";
+
+type GroupedSession = {
+  session: AiChatSession;
+  timestamp: number;
+};
+
 const RAIL_SESSION_LIMIT = 25;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Second left rail used only on `/cxc-ai/*`. Lists past CXC AI sessions
@@ -27,6 +35,9 @@ export function ChatHistoryRail({ sessions }: ChatHistoryRailProps) {
   const visible = sorted.slice(0, RAIL_SESSION_LIMIT);
   const overflow = Math.max(0, sorted.length - visible.length);
 
+  const now = new Date();
+  const groups = groupSessions(visible, now);
+
   return (
     <nav
       aria-label="Chat history"
@@ -39,55 +50,61 @@ export function ChatHistoryRail({ sessions }: ChatHistoryRailProps) {
         New chat
       </Link>
 
-      <div className="flex flex-col">
-        <h2 className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
-          Recent
-        </h2>
-        {visible.length === 0 ? (
+      {visible.length === 0 ? (
+        <div className="flex flex-col">
           <p className="px-1 text-xs text-[var(--color-ink-500)]">
             No past chats yet.
           </p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {visible.map((session) => {
-              const active = session.id === activeChatId;
-              return (
-                <li key={session.id}>
-                  <Link
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "flex h-11 flex-col justify-center rounded-md border-l-[3px] px-3 transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-inset",
-                      active
-                        ? "border-l-[var(--color-cardinal-500)] bg-[var(--color-ink-50)]"
-                        : "border-l-transparent hover:bg-[var(--color-ink-50)]",
-                    )}
-                    href={`/cxc-ai/${encodeURIComponent(session.id)}`}
-                  >
-                    <span
-                      className={cn(
-                        "block truncate text-[13px] leading-tight",
-                        active
-                          ? "font-semibold text-[var(--color-ink-900)]"
-                          : "text-[var(--color-ink-700)]",
-                      )}
-                    >
-                      {session.title || "Untitled chat"}
-                    </span>
-                    <span className="mt-0.5 truncate text-[11px] text-[var(--color-ink-500)]">
-                      {formatRelative(session.updatedAt ?? session.createdAt)}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {overflow > 0 ? (
-          <p className="mt-2 px-1 text-[11px] text-[var(--color-ink-500)]">
-            + {overflow} older
-          </p>
-        ) : null}
-      </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {groups.map((group) => (
+            <div key={group.key} className="flex flex-col">
+              <h2 className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
+                {group.label}
+              </h2>
+              <ul className="flex flex-col gap-1">
+                {group.items.map(({ session, timestamp }) => {
+                  const active = session.id === activeChatId;
+                  return (
+                    <li key={session.id}>
+                      <Link
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "flex h-11 flex-col justify-center rounded-md border-l-[3px] px-3 transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-inset",
+                          active
+                            ? "border-l-[var(--color-cardinal-500)] bg-[var(--color-ink-50)]"
+                            : "border-l-transparent hover:bg-[var(--color-ink-50)]",
+                        )}
+                        href={`/cxc-ai/${encodeURIComponent(session.id)}`}
+                      >
+                        <span
+                          className={cn(
+                            "block truncate text-[13px] leading-tight",
+                            active
+                              ? "font-semibold text-[var(--color-ink-900)]"
+                              : "text-[var(--color-ink-700)]",
+                          )}
+                        >
+                          {session.title || "Untitled chat"}
+                        </span>
+                        <span className="mt-0.5 truncate text-[11px] text-[var(--color-ink-500)]">
+                          {formatBucketTime(group.key, timestamp, now)}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+          {overflow > 0 ? (
+            <p className="mt-1 px-1 text-[11px] text-[var(--color-ink-500)]">
+              + {overflow} older
+            </p>
+          ) : null}
+        </div>
+      )}
     </nav>
   );
 }
@@ -111,26 +128,93 @@ function toTime(value: string | undefined): number {
   return Number.isFinite(time) ? time : 0;
 }
 
-function formatRelative(iso: string): string {
-  const time = new Date(iso).getTime();
-  if (!Number.isFinite(time)) {
-    return "";
+type SessionGroup = {
+  key: GroupKey;
+  label: string;
+  items: GroupedSession[];
+};
+
+function groupSessions(
+  sessions: AiChatSession[],
+  now: Date,
+): SessionGroup[] {
+  const today: GroupedSession[] = [];
+  const week: GroupedSession[] = [];
+  const older: GroupedSession[] = [];
+
+  const nowTime = now.getTime();
+  const todayY = now.getFullYear();
+  const todayM = now.getMonth();
+  const todayD = now.getDate();
+
+  for (const session of sessions) {
+    const iso = session.updatedAt || session.createdAt;
+    const timestamp = toTime(iso);
+    if (!timestamp) {
+      older.push({ session, timestamp });
+      continue;
+    }
+    const date = new Date(timestamp);
+    const diffMs = nowTime - timestamp;
+    const sameCalendarDay =
+      date.getFullYear() === todayY &&
+      date.getMonth() === todayM &&
+      date.getDate() === todayD;
+
+    if (diffMs < DAY_MS && diffMs >= 0 && sameCalendarDay) {
+      today.push({ session, timestamp });
+    } else if (diffMs < 7 * DAY_MS && diffMs >= 0) {
+      week.push({ session, timestamp });
+    } else {
+      older.push({ session, timestamp });
+    }
   }
 
-  const diffMs = Date.now() - time;
-  const diffMin = Math.floor(diffMs / 60_000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 7) return `${diffDay}d ago`;
-  const diffWk = Math.floor(diffDay / 7);
-  if (diffWk < 5) return `${diffWk}w ago`;
-  const diffMo = Math.floor(diffDay / 30);
-  if (diffMo < 12) return `${diffMo}mo ago`;
-  const diffYr = Math.floor(diffDay / 365);
-  return `${diffYr}y ago`;
+  const groups: SessionGroup[] = [];
+  if (today.length > 0) {
+    groups.push({ key: "today", label: "Today", items: today });
+  }
+  if (week.length > 0) {
+    groups.push({ key: "week", label: "Last 7 Days", items: week });
+  }
+  if (older.length > 0) {
+    groups.push({ key: "older", label: "Older", items: older });
+  }
+  return groups;
+}
+
+function formatBucketTime(
+  key: GroupKey,
+  timestamp: number,
+  now: Date,
+): string {
+  if (!timestamp) {
+    return "";
+  }
+  const date = new Date(timestamp);
+  if (key === "today") {
+    return new Intl.DateTimeFormat(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date);
+  }
+  if (key === "week") {
+    return new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(
+      date,
+    );
+  }
+  const monthDay = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+  const ageMs = now.getTime() - timestamp;
+  if (ageMs > 365 * DAY_MS) {
+    const year = new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+    }).format(date);
+    return `${monthDay}, ${year}`;
+  }
+  return monthDay;
 }
 
 export default ChatHistoryRail;

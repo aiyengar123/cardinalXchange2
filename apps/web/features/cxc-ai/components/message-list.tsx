@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useMemo } from "react";
 
-import { SourcePill } from "@/features/cxc-ai/components/source-pill";
+import { CitationBubble } from "@/features/cxc-ai/components/citation-bubble";
+import { CitedText } from "@/features/cxc-ai/components/cited-text";
+import { RelatedQuestions } from "@/features/cxc-ai/components/related-questions";
+import ToolChain from "@/features/cxc-ai/components/tool-chain";
+import { citedSourceIndices } from "@/server/cxc-ai/services/citation-extraction.service";
 import type { CxcMessageDto, CxcSourceDto } from "@/server/http/contracts";
 
 type MessageListProps = {
@@ -11,18 +15,7 @@ type MessageListProps = {
   isStreaming?: boolean;
 };
 
-/**
- * Renders the full message thread: user bubbles right-aligned, assistant
- * bubbles left-aligned. Assistant messages may include source pills
- * (rendered before text) and an inline `Ask the Community` draft card whose
- * "Use this draft" CTA routes to `/ask?draft=…` carrying transient state
- * (no DB write).
- */
 export function MessageList({ messages, isStreaming }: MessageListProps) {
-  if (messages.length === 0) {
-    return <EmptyState />;
-  }
-
   return (
     <ul aria-live="polite" className="flex flex-col gap-6">
       {messages.map((message) => (
@@ -44,63 +37,76 @@ function MessageBubble({
   const isUser = message.role === "user";
   const sources = useMemo(() => extractSources(message), [message]);
   const drafts = useMemo(() => extractDrafts(message), [message]);
-  const hasText = message.parts.some((part) => part.type === "text");
-
-  return (
-    <article
-      className={isUser ? "flex justify-end" : "flex justify-start"}
-      data-role={message.role}
-    >
-      <div
-        className={`flex max-w-[min(42rem,90%)] flex-col gap-3 border px-4 py-3 text-sm leading-relaxed ${
-          isUser
-            ? "border-[var(--color-cardinal-500)] bg-[var(--color-cardinal-500)] text-white"
-            : "border-[var(--color-border-default)] bg-[var(--color-surface-base)] text-[var(--color-ink-900)]"
-        }`}
-      >
-        {sources.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {sources.map((source) => (
-              <SourcePill key={source.id} source={source} />
-            ))}
-          </div>
-        ) : null}
-
-        {message.parts.map((part, index) => (
-          <MessagePart key={`${message.id}-${index}`} part={part} />
-        ))}
-
-        {drafts.map((draft, index) => (
-          <AskCommunityDraftCard
-            draft={draft}
-            key={`${message.id}-draft-${index}`}
-          />
-        ))}
-
-        {!isUser && !hasText && message.parts.length === 0 && isStreaming ? (
-          <span className="text-sm text-[var(--color-ink-500)]">Thinking…</span>
-        ) : null}
-      </div>
-    </article>
+  const toolParts = useMemo(() => extractToolParts(message), [message]);
+  const text = useMemo(() => extractText(message), [message]);
+  const hasInlineCitations = useMemo(
+    () => citedSourceIndices(text).size > 0,
+    [text],
   );
-}
 
-type MessagePart = CxcMessageDto["parts"][number];
-
-function MessagePart({ part }: { part: MessagePart }) {
-  if (part.type === "text") {
+  if (isUser) {
     return (
-      <p className="whitespace-pre-wrap break-words">
-        {(part as { text: string }).text}
-      </p>
+      <article className="flex justify-end" data-role="user">
+        <div className="max-w-[min(38rem,85%)] rounded-md bg-[var(--color-cardinal-500)] px-4 py-2.5 text-sm leading-relaxed text-white">
+          <p className="whitespace-pre-wrap break-words">{text}</p>
+        </div>
+      </article>
     );
   }
 
-  // Source URL parts are surfaced as pills above; skip rendering them
-  // inline. Tool plumbing parts (drafts, search results) are rendered as
-  // dedicated cards elsewhere — suppressing them here keeps the message
-  // body free of AI slop.
-  return null;
+  return (
+    <article className="flex flex-col gap-2" data-role="assistant">
+      {toolParts.length > 0 ? <ToolChain parts={toolParts} /> : null}
+
+      {text ? (
+        <CitedText
+          className="text-sm text-[var(--color-ink-900)] [&_p]:text-sm"
+          sources={sources}
+          text={text}
+        />
+      ) : null}
+
+      {sources.length > 0 && hasInlineCitations ? (
+        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
+            Sources
+          </span>
+          {sources.map((source, index) => (
+            <CitationBubble
+              index={index + 1}
+              key={source.id}
+              source={source}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {sources.length > 0 && !hasInlineCitations ? (
+        <RelatedQuestions sources={sources} />
+      ) : null}
+
+      {drafts.map((draft, index) => (
+        <AskCommunityDraftCard
+          draft={draft}
+          key={`${message.id}-draft-${index}`}
+        />
+      ))}
+
+      {!text &&
+      toolParts.length === 0 &&
+      sources.length === 0 &&
+      drafts.length === 0 &&
+      isStreaming ? (
+        <span className="inline-flex items-center gap-2 text-sm text-[var(--color-ink-500)]">
+          <span
+            aria-hidden
+            className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-cardinal-500)]"
+          />
+          Thinking…
+        </span>
+      ) : null}
+    </article>
+  );
 }
 
 function AskCommunityDraftCard({
@@ -108,11 +114,14 @@ function AskCommunityDraftCard({
 }: {
   draft: { title: string; body: string; tags: string[] };
 }) {
-  const encoded = useMemo(() => encodeURIComponent(JSON.stringify(draft)), [draft]);
+  const encoded = useMemo(
+    () => encodeURIComponent(JSON.stringify(draft)),
+    [draft],
+  );
 
   return (
-    <aside className="border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
+    <aside className="rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
         Ask the Community draft
       </p>
       <p className="mt-1 text-sm font-semibold text-[var(--color-ink-900)]">
@@ -125,7 +134,7 @@ function AskCommunityDraftCard({
         <div className="mt-3 flex flex-wrap gap-1.5">
           {draft.tags.map((tag) => (
             <span
-              className="inline-flex items-center border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-2 py-0.5 text-xs font-medium leading-none text-[var(--color-ink-700)]"
+              className="inline-flex items-center rounded-sm border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-2 py-0.5 text-xs font-medium leading-none text-[var(--color-ink-700)]"
               key={tag}
             >
               {tag}
@@ -135,7 +144,7 @@ function AskCommunityDraftCard({
       ) : null}
       <div className="mt-3 flex justify-end">
         <Link
-          className="inline-flex h-9 items-center justify-center border border-transparent bg-[var(--color-cardinal-500)] px-3 text-xs font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-3 text-xs font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2"
           href={`/ask?draft=${encoded}`}
         >
           Use this draft
@@ -145,19 +154,11 @@ function AskCommunityDraftCard({
   );
 }
 
-function EmptyState() {
-  return (
-    <div className="flex min-h-[20rem] items-center justify-center px-6">
-      <div className="max-w-xl text-center">
-        <p className="text-base font-medium text-[var(--color-ink-900)]">
-          Ask anything about Stanford.
-        </p>
-        <p className="mt-2 text-sm text-[var(--color-ink-500)]">
-          CXC AI cites public Q&A when it can.
-        </p>
-      </div>
-    </div>
-  );
+function extractText(message: CxcMessageDto): string {
+  return message.parts
+    .filter((part) => part.type === "text")
+    .map((part) => (part as { text: string }).text ?? "")
+    .join("");
 }
 
 function extractSources(message: CxcMessageDto): CxcSourceDto[] {
@@ -175,18 +176,48 @@ function extractSources(message: CxcMessageDto): CxcSourceDto[] {
       (candidate.name as string | undefined) ??
       "Source";
     const { label, title } = splitLabelTitle(titleField);
+    const meta = readCxcMeta(candidate);
     sources.push({
       id: id || `${label}-${title}-${sources.length}`,
-      kind: kindForLabel(label),
+      kind: kindForLabel(label, meta.kind),
       label,
       title,
-      snippet: "",
+      snippet:
+        meta.snippet ?? (candidate.snippet as string | undefined) ?? "",
       questionId: (candidate.questionId as string | undefined) ?? "",
       answerId: candidate.answerId as string | undefined,
       url,
     });
   }
   return sources;
+}
+
+function readCxcMeta(part: Record<string, unknown>): {
+  snippet?: string;
+  kind?: string;
+} {
+  const provider = part.providerMetadata;
+  if (typeof provider !== "object" || provider === null) return {};
+  const cxc = (provider as Record<string, unknown>).cxc;
+  if (typeof cxc !== "object" || cxc === null) return {};
+  const record = cxc as Record<string, unknown>;
+  return {
+    snippet: typeof record.snippet === "string" ? record.snippet : undefined,
+    kind: typeof record.kind === "string" ? record.kind : undefined,
+  };
+}
+
+function extractToolParts(
+  message: CxcMessageDto,
+): Array<Record<string, unknown>> {
+  const result: Array<Record<string, unknown>> = [];
+  for (const part of message.parts) {
+    if (typeof part.type !== "string") continue;
+    if (!part.type.startsWith("tool-")) continue;
+    if (part.type === "tool-ask_community_draft") continue;
+    result.push(part as unknown as Record<string, unknown>);
+  }
+  return result;
 }
 
 function extractDrafts(
@@ -206,7 +237,9 @@ function extractDrafts(
     const title = typeof output.title === "string" ? output.title : "";
     const body = typeof output.body === "string" ? output.body : "";
     const tags = Array.isArray(output.tags)
-      ? (output.tags as unknown[]).filter((value): value is string => typeof value === "string")
+      ? (output.tags as unknown[]).filter(
+          (value): value is string => typeof value === "string",
+        )
       : [];
     if (!title && !body) continue;
     drafts.push({ title, body, tags });
@@ -216,7 +249,7 @@ function extractDrafts(
 
 function splitLabelTitle(label: string): { label: string; title: string } {
   const colonIndex = label.indexOf(":");
-  if (colonIndex > 0 && colonIndex < 6) {
+  if (colonIndex > 0 && colonIndex < 10) {
     return {
       label: label.slice(0, colonIndex).trim() || "Source",
       title: label.slice(colonIndex + 1).trim() || label,
@@ -225,10 +258,16 @@ function splitLabelTitle(label: string): { label: string; title: string } {
   return { label: "Source", title: label };
 }
 
-function kindForLabel(label: string): CxcSourceDto["kind"] {
-  const upper = label.toUpperCase();
-  if (upper === "Q") return "question";
-  if (upper === "A") return "answer";
+function kindForLabel(
+  label: string,
+  metaKind?: string,
+): CxcSourceDto["kind"] {
+  if (metaKind === "question" || metaKind === "answer" || metaKind === "web") {
+    return metaKind;
+  }
+  const lower = label.toLowerCase();
+  if (lower.startsWith("question") || lower === "q") return "question";
+  if (lower.startsWith("answer") || lower === "a") return "answer";
   return "web";
 }
 

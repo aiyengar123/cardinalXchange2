@@ -23,6 +23,8 @@ import {
   cxcAiStopWhen,
   getLatestUserText,
 } from "@/server/cxc-ai/agents/cxc.agent";
+import { citedSourceIndices } from "@/server/cxc-ai/services/citation-extraction.service";
+import { registerStream } from "@/server/cxc-ai/services/stream-registry";
 import type {
   AiChatMessage,
   AiChatSource,
@@ -125,7 +127,7 @@ type StreamCxcAiTurnArgs = {
 export function streamCxcAiTurn({ chatId, messages, sources }: StreamCxcAiTurnArgs) {
   const latestUserText = getLatestUserText(messages);
 
-  return createUIMessageStreamResponse({
+  const response = createUIMessageStreamResponse({
     stream: createUIMessageStream({
       async execute({ writer }) {
         sources.forEach((source) => {
@@ -134,6 +136,12 @@ export function streamCxcAiTurn({ chatId, messages, sources }: StreamCxcAiTurnAr
             sourceId: source.id,
             url: source.url,
             title: `${source.label}: ${source.title}`,
+            providerMetadata: {
+              cxc: {
+                snippet: source.snippet,
+                kind: source.kind,
+              },
+            },
           });
         });
 
@@ -144,15 +152,26 @@ export function streamCxcAiTurn({ chatId, messages, sources }: StreamCxcAiTurnAr
           writer.write({ type: "text-delta", id: textId, delta: text });
           writer.write({ type: "text-end", id: textId });
 
-          // Persist the user-side turn + the synthesized assistant text so a
-          // refresh resumes the conversation. The fallback path has no
-          // streaming model so we can write here synchronously.
           const assistantMessage: AiChatMessage = {
             id: textId,
             role: "assistant",
-            parts: [{ type: "text", text }],
+            parts: [
+              ...sources.map((source) => ({
+                type: "source-url" as const,
+                sourceId: source.id,
+                url: source.url,
+                title: `${source.label}: ${source.title}`,
+                snippet: source.snippet,
+              })),
+              { type: "text" as const, text },
+            ],
           };
-          await persistFinishedTurn(chatId, [...messages, assistantMessage], sources);
+          await persistFinishedTurn(
+            chatId,
+            [...messages, assistantMessage],
+            sources,
+            text,
+          );
           return;
         }
 
@@ -160,51 +179,80 @@ export function streamCxcAiTurn({ chatId, messages, sources }: StreamCxcAiTurnAr
           model: openai(cxcAiModelName),
           system: buildCxcAiSystemPrompt(sources),
           messages: await convertToModelMessages(messages),
-          tools: createCxcAiTools(),
+          tools: createCxcAiTools({ chatId }),
           stopWhen: cxcAiStopWhen,
           maxOutputTokens: 900,
         });
 
-        // Wire the AI SDK's UI message stream and persist the finished
-        // assistant turn server-side. `onFinish` runs even if the client
-        // disconnects mid-stream, so durability does not depend on the tab
-        // staying open.
         writer.merge(
           result.toUIMessageStream({
             originalMessages: messages,
             onFinish: ({ messages: finalMessages }) => {
-              void persistFinishedTurn(
-                chatId,
-                finalMessages as UIMessage[],
-                sources,
-              );
+              const ms = finalMessages as UIMessage[];
+              const finalAssistantText = extractFinalAssistantText(ms);
+              void persistFinishedTurn(chatId, ms, sources, finalAssistantText);
             },
           }),
         );
       },
     }),
   });
+
+  if (!response.body) {
+    return response;
+  }
+  return new Response(registerStream(chatId, response.body), {
+    status: response.status,
+    headers: response.headers,
+  });
+}
+
+function extractFinalAssistantText(messages: UIMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const message = messages[i];
+    if (!message) continue;
+    if (message.role === "assistant") {
+      return message.parts
+        .filter((part) => part.type === "text")
+        .map((part) => (part as { text: string }).text ?? "")
+        .join("\n");
+    }
+  }
+  return "";
 }
 
 async function persistFinishedTurn(
   chatId: string,
   messages: UIMessage[],
   sources: AiChatSource[],
+  assistantText: string,
 ): Promise<void> {
   try {
+    const cited = filterCitedSources(sources, assistantText);
     await replaceAiChatMessages(
       chatId,
       messages as unknown as AiChatMessage[],
-      sources,
+      cited,
     );
   } catch (error) {
-    // We never want a persistence failure to crash the streaming response.
-    // Surface to the dev console so the issue is debuggable; production
-    // observability is a downstream concern.
     if (process.env.NODE_ENV !== "production") {
       console.error("[cxc-ai] failed to persist assistant turn", error);
     }
   }
+}
+
+function filterCitedSources(
+  sources: AiChatSource[],
+  assistantText: string,
+): AiChatSource[] {
+  if (!assistantText || sources.length === 0) {
+    return sources;
+  }
+  const indices = citedSourceIndices(assistantText);
+  if (indices.size === 0) {
+    return sources;
+  }
+  return sources.filter((_, idx) => indices.has(idx + 1));
 }
 
 function toSessionDto(record: AiChatSessionRecord): AiChatSession {

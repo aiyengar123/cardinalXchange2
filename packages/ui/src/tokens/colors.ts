@@ -6,10 +6,10 @@
  */
 export const colors = {
   cardinal: {
-    50: "#fff1f1",
-    500: "#8C1515", // Stanford cardinal
-    600: "#7a1212",
-    700: "#5e0e0e",
+    50: "#fdecef",
+    500: "#c8102e", // vibrant cardinal red, cool undertone (not orange)
+    600: "#a30c25",
+    700: "#7a091c",
   },
   ink: {
     900: "#0a0a0a",
@@ -26,7 +26,7 @@ export const colors = {
   border: {
     default: "#e6e6e6",
     strong: "#d0d0d0",
-    focus: "#8C1515",
+    focus: "#c8102e",
   },
   state: {
     danger: "#b00020",
