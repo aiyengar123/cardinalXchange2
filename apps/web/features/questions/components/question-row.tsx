@@ -12,7 +12,7 @@ export function QuestionRow({ question }: { question: QuestionRowDto }) {
 
   return (
     <article
-      className="px-4 py-4 transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] sm:px-5"
+      className="px-5 py-6 transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] sm:px-6"
       id={question.id}
     >
       <div className="min-w-0">

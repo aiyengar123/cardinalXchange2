@@ -22,7 +22,7 @@ export function TopCommandBar() {
       className="sticky top-0 z-30 border-b border-[var(--color-cardinal-700)] bg-[var(--color-cardinal-500)] text-white"
       role="banner"
     >
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-[1264px] items-center gap-4 px-4 sm:px-6">
         <Link
           aria-label="CardinalXchange home"
           className="shrink-0 text-base font-semibold tracking-tight text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
@@ -37,7 +37,7 @@ export function TopCommandBar() {
 
         <Link
           aria-label="Ask a question"
-          className="inline-flex h-9 shrink-0 items-center justify-center border border-white bg-white px-3 text-sm font-semibold text-[var(--color-cardinal-500)] transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-white bg-white px-4 text-sm font-semibold text-[var(--color-cardinal-500)] transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           href="/ask"
         >
           Ask Question
@@ -80,7 +80,7 @@ function SearchField() {
       </label>
       <input
         autoComplete="off"
-        className="block h-9 w-full min-w-0 border border-[var(--color-cardinal-700)] bg-white px-3 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-500)] focus:border-[var(--color-border-focus)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-border-focus)]"
+        className="block h-9 w-full min-w-0 rounded-md border border-[var(--color-cardinal-700)] bg-white px-4 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-500)] focus:border-[var(--color-border-focus)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-border-focus)]"
         id="top-bar-search"
         name="query"
         onChange={(event) => setQuery(event.target.value)}
@@ -96,7 +96,7 @@ function SearchFallback() {
   return (
     <div
       aria-hidden
-      className="block h-9 min-w-0 flex-1 border border-[var(--color-cardinal-700)] bg-white"
+      className="block h-9 min-w-0 flex-1 rounded-md border border-[var(--color-cardinal-700)] bg-white"
     />
   );
 }

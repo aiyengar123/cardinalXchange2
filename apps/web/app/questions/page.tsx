@@ -39,7 +39,7 @@ export default async function QuestionsPage({
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--color-border-default)] pb-4">
         <div className="min-w-0">
           <h1
-            className="font-serif text-3xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-4xl"
+            className="font-serif text-4xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-5xl"
             style={{ borderRadius: "var(--radius-title)" }}
           >
             Questions
@@ -78,7 +78,7 @@ export default async function QuestionsPage({
           return (
             <Link
               aria-current={active ? "page" : undefined}
-              className={`inline-flex h-8 items-center border px-3 text-xs font-medium transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] ${
+              className={`inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] ${
                 active
                   ? "border-[var(--color-cardinal-500)] bg-[var(--color-cardinal-500)] text-white"
                   : "border-[var(--color-border-default)] bg-[var(--color-surface-base)] text-[var(--color-ink-700)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-ink-900)]"

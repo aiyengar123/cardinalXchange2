@@ -12,16 +12,16 @@
 
 export type RailTopic = {
   /** stable id used for active-state matching against the route. */
-  id: "cxc-ai" | "questions" | "topics" | "trending";
+  id: "home" | "questions" | "tags" | "cxc-ai";
   label: string;
   href: string;
 };
 
 export const railTopics: ReadonlyArray<RailTopic> = [
-  { id: "cxc-ai", label: "CXC AI", href: "/cxc-ai" },
+  { id: "home", label: "Home", href: "/" },
   { id: "questions", label: "Questions", href: "/questions" },
-  { id: "topics", label: "Topics", href: "/questions#topics" },
-  { id: "trending", label: "Trending", href: "/questions?sort=active" },
+  { id: "tags", label: "Tags", href: "/questions#tags" },
+  { id: "cxc-ai", label: "CXC AI", href: "/cxc-ai" },
 ];
 
 export type TopicTag = {

@@ -19,9 +19,9 @@ export function TopicRail() {
   return (
     <nav
       aria-label="Sections"
-      className="hidden w-48 shrink-0 border-r border-[var(--color-border-default)] bg-[var(--color-surface-base)] py-4 lg:block"
+      className="hidden w-[180px] shrink-0 py-6 pr-2 lg:block"
     >
-      <ul className="flex flex-col">
+      <ul className="flex flex-col gap-1">
         {railTopics.map((topic) => {
           const active = topic.id === activeId;
           return (
@@ -29,7 +29,7 @@ export function TopicRail() {
               <Link
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex h-10 items-center border-l-[3px] px-4 text-sm transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-inset",
+                  "flex h-11 items-center rounded-md border-l-[3px] px-4 text-[15px] transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-inset",
                   active
                     ? "border-l-[var(--color-cardinal-500)] bg-[var(--color-ink-50)] font-semibold text-[var(--color-ink-900)]"
                     : "border-l-transparent text-[var(--color-ink-700)] hover:bg-[var(--color-ink-50)] hover:text-[var(--color-ink-900)]",
@@ -50,8 +50,11 @@ function resolveActiveId(pathname: string): RailTopic["id"] | null {
   if (pathname.startsWith("/cxc-ai")) {
     return "cxc-ai";
   }
-  if (pathname === "/" || pathname.startsWith("/questions") || pathname.startsWith("/ask")) {
+  if (pathname.startsWith("/questions") || pathname.startsWith("/ask")) {
     return "questions";
+  }
+  if (pathname === "/") {
+    return "home";
   }
   return null;
 }
