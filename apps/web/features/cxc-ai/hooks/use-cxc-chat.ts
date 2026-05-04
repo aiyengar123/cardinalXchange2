@@ -12,11 +12,13 @@ type UseCxcChatArgs = {
 };
 
 /**
- * Wraps the AI SDK's `useChat` with CXC-specific transport + persistence
- * hooks. The route handler at `/api/cxc-ai` already persists the user-side
- * message before streaming; we POST the finished assistant turn to
- * `/api/cxc-ai/chats/[chatId]/messages` once the stream settles so a refresh
- * resumes the conversation.
+ * Wraps the AI SDK's `useChat` with the CXC streaming transport.
+ *
+ * Durable persistence is owned by the server: `/api/cxc-ai` writes the
+ * assistant turn (messages + sources) on stream completion via the AI SDK
+ * `onFinish` callback. The client no longer needs to post the finished
+ * messages back — closing the tab mid-stream still lands the assistant
+ * turn in Postgres.
  */
 export function useCxcChat({ chatId, initialMessages }: UseCxcChatArgs) {
   const transport = useMemo(
@@ -34,16 +36,6 @@ export function useCxcChat({ chatId, initialMessages }: UseCxcChatArgs) {
     id: chatId,
     messages: initialMessages,
     transport,
-    onFinish: ({ messages: finishedMessages }) => {
-      void fetch(
-        `/api/cxc-ai/chats/${encodeURIComponent(chatId)}/messages`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ messages: finishedMessages }),
-        },
-      );
-    },
   });
 
   return chat;

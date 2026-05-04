@@ -1,6 +1,6 @@
 import { prisma } from "./client";
 import { searchQuestionRecords } from "./questions.queries";
-import { aiChatSessionInclude, type AiChatSessionRecord } from "./types";
+import { aiChatSessionInclude, type AiChatSessionRecord } from "./db.types";
 
 export async function createAiChatSessionRecord(
   title = "New CXC AI chat",

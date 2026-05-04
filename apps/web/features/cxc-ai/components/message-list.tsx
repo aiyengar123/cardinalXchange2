@@ -67,11 +67,7 @@ function MessageBubble({
         ) : null}
 
         {message.parts.map((part, index) => (
-          <MessagePart
-            isUser={isUser}
-            key={`${message.id}-${index}`}
-            part={part}
-          />
+          <MessagePart key={`${message.id}-${index}`} part={part} />
         ))}
 
         {drafts.map((draft, index) => (
@@ -91,13 +87,7 @@ function MessageBubble({
 
 type MessagePart = CxcMessageDto["parts"][number];
 
-function MessagePart({
-  isUser,
-  part,
-}: {
-  isUser: boolean;
-  part: MessagePart;
-}) {
+function MessagePart({ part }: { part: MessagePart }) {
   if (part.type === "text") {
     return (
       <p className="whitespace-pre-wrap break-words">
@@ -106,20 +96,10 @@ function MessagePart({
     );
   }
 
-  // Source URL parts are surfaced as pills above; skip rendering them inline.
-  if (part.type.startsWith("source-")) {
-    return null;
-  }
-
-  // Suppress raw tool plumbing — drafts are rendered below as cards, and
-  // tool call metadata reads as AI slop in body copy.
-  if (part.type.startsWith("tool-")) {
-    return null;
-  }
-
-  // Fallback: stringified preview, only useful while developing. Hidden on
-  // user bubbles (user input is text-only by construction).
-  if (isUser) return null;
+  // Source URL parts are surfaced as pills above; skip rendering them
+  // inline. Tool plumbing parts (drafts, search results) are rendered as
+  // dedicated cards elsewhere — suppressing them here keeps the message
+  // body free of AI slop.
   return null;
 }
 

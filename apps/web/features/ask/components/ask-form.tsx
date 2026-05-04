@@ -39,7 +39,11 @@ export function AskForm({ initialDraft }: AskFormProps) {
   );
   const [tagDraft, setTagDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    title?: string;
+    body?: string;
+    form?: string;
+  }>({});
 
   // Re-hydrate when the draft prop changes (e.g. arriving from CXC AI).
   useEffect(() => {
@@ -90,16 +94,19 @@ export function AskForm({ initialDraft }: AskFormProps) {
   const onSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      setError(null);
 
+      const nextErrors: typeof fieldErrors = {};
       if (!title.trim()) {
-        setError("Title is required.");
-        return;
+        nextErrors.title = "Title is required.";
       }
       if (!body.trim()) {
-        setError("Body is required.");
+        nextErrors.body = "Body is required.";
+      }
+      if (nextErrors.title || nextErrors.body) {
+        setFieldErrors(nextErrors);
         return;
       }
+      setFieldErrors({});
 
       // Commit a pending tag before submit if the user typed one without
       // pressing Enter — common UX expectation.
@@ -127,7 +134,16 @@ export function AskForm({ initialDraft }: AskFormProps) {
           const message =
             (data && "error" in data && data.error?.message) ||
             "Could not post that question. Try again in a moment.";
-          setError(message);
+          // Server-side zod errors arrive as `field: message`. Map title/body
+          // back to the inline field error so the user sees the indicator on
+          // the right input.
+          if (message.startsWith("title:")) {
+            setFieldErrors({ title: message.replace(/^title:\s*/, "") });
+          } else if (message.startsWith("body:")) {
+            setFieldErrors({ body: message.replace(/^body:\s*/, "") });
+          } else {
+            setFieldErrors({ form: message });
+          }
           return;
         }
 
@@ -139,18 +155,22 @@ export function AskForm({ initialDraft }: AskFormProps) {
           router.refresh();
         }
       } catch {
-        setError("Network error — could not reach the server.");
+        setFieldErrors({
+          form: "Network error — could not reach the server.",
+        });
       } finally {
         setSubmitting(false);
       }
     },
-    [body, router, tagDraft, tags, title],
+    [body, fieldErrors, router, tagDraft, tags, title],
   );
 
   const titleId = "ask-title";
   const bodyId = "ask-body";
   const tagsId = "ask-tags";
-  const errorId = "ask-error";
+  const titleErrorId = "ask-title-error";
+  const bodyErrorId = "ask-body-error";
+  const formErrorId = "ask-form-error";
 
   const tagPlaceholder = useMemo(
     () =>
@@ -170,22 +190,41 @@ export function AskForm({ initialDraft }: AskFormProps) {
           Title
         </label>
         <input
-          aria-describedby={error ? errorId : undefined}
-          aria-invalid={error ? "true" : undefined}
+          aria-describedby={fieldErrors.title ? titleErrorId : undefined}
+          aria-invalid={fieldErrors.title ? "true" : undefined}
           autoComplete="off"
-          className="block h-10 w-full border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-3 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:border-[var(--color-border-focus)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-border-focus)]"
+          className={`block h-10 w-full border bg-[var(--color-surface-base)] px-3 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:outline-none focus:ring-2 focus:ring-inset ${
+            fieldErrors.title
+              ? "border-[var(--color-state-danger)] focus:border-[var(--color-state-danger)] focus:ring-[var(--color-state-danger)]"
+              : "border-[var(--color-border-default)] focus:border-[var(--color-border-focus)] focus:ring-[var(--color-border-focus)]"
+          }`}
           disabled={submitting}
           id={titleId}
           maxLength={180}
           name="title"
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value);
+            if (fieldErrors.title) {
+              setFieldErrors((prev) => ({ ...prev, title: undefined }));
+            }
+          }}
           placeholder="What is your question?"
           required
           value={title}
         />
-        <p className="text-xs text-[var(--color-ink-500)]">
-          One sentence, focused on a single ask.
-        </p>
+        {fieldErrors.title ? (
+          <p
+            className="text-xs font-medium text-[var(--color-state-danger)]"
+            id={titleErrorId}
+            role="alert"
+          >
+            {fieldErrors.title}
+          </p>
+        ) : (
+          <p className="text-xs text-[var(--color-ink-500)]">
+            One sentence, focused on a single ask.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -196,18 +235,36 @@ export function AskForm({ initialDraft }: AskFormProps) {
           Body
         </label>
         <textarea
-          aria-describedby={error ? errorId : undefined}
-          aria-invalid={error ? "true" : undefined}
-          className="block min-h-48 w-full border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-3 py-2 text-sm leading-relaxed text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:border-[var(--color-border-focus)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-border-focus)]"
+          aria-describedby={fieldErrors.body ? bodyErrorId : undefined}
+          aria-invalid={fieldErrors.body ? "true" : undefined}
+          className={`block min-h-48 w-full border bg-[var(--color-surface-base)] px-3 py-2 text-sm leading-relaxed text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:outline-none focus:ring-2 focus:ring-inset ${
+            fieldErrors.body
+              ? "border-[var(--color-state-danger)] focus:border-[var(--color-state-danger)] focus:ring-[var(--color-state-danger)]"
+              : "border-[var(--color-border-default)] focus:border-[var(--color-border-focus)] focus:ring-[var(--color-border-focus)]"
+          }`}
           disabled={submitting}
           id={bodyId}
           maxLength={5000}
           name="body"
-          onChange={(event) => setBody(event.target.value)}
+          onChange={(event) => {
+            setBody(event.target.value);
+            if (fieldErrors.body) {
+              setFieldErrors((prev) => ({ ...prev, body: undefined }));
+            }
+          }}
           placeholder="Include what you have tried, what would make an answer useful, and any relevant constraints."
           required
           value={body}
         />
+        {fieldErrors.body ? (
+          <p
+            className="text-xs font-medium text-[var(--color-state-danger)]"
+            id={bodyErrorId}
+            role="alert"
+          >
+            {fieldErrors.body}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -254,19 +311,19 @@ export function AskForm({ initialDraft }: AskFormProps) {
         </p>
       </div>
 
-      {error ? (
+      {fieldErrors.form ? (
         <p
           className="text-sm font-medium text-[var(--color-state-danger)]"
-          id={errorId}
+          id={formErrorId}
           role="alert"
         >
-          {error}
+          {fieldErrors.form}
         </p>
       ) : null}
 
       <div className="flex justify-end">
         <button
-          className="inline-flex h-10 items-center justify-center border border-transparent bg-[var(--color-cardinal-500)] px-4 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-4 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={submitting}
           type="submit"
         >

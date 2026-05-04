@@ -10,7 +10,7 @@ import {
   type AiChatSessionRecord,
   type PersistedAiChatMessageInput,
   type PersistedAiChatSourceInput,
-} from "./types";
+} from "./db.types";
 
 export async function ensureAiChatSessionRecord(
   chatId: string,

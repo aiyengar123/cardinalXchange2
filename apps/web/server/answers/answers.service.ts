@@ -4,7 +4,7 @@ import { getViewer } from "@/lib/viewer";
 import type { AnswerDto, CreateAnswerInput } from "@/server/http/contracts";
 import { HttpError } from "@/server/http/http";
 import { persistAnswer } from "@/server/answers/answers.mutations";
-import { toAnswerDto } from "@/server/questions/questions.service";
+import { toAnswerDto } from "@/server/questions/questions.mappers";
 
 export async function addAnswer(
   questionId: string,

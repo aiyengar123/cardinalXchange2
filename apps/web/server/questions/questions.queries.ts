@@ -2,6 +2,7 @@ import {
   getQuestionRecord,
   listQuestionRecords,
   type ListQuestionRecordsArgs,
+  type QuestionFeedRecord,
   type QuestionRecord,
 } from "@cardinalxchange/db";
 
@@ -15,7 +16,7 @@ import type { ListQuestionsForFeedArgs } from "@/server/questions/questions.type
 
 export async function findQuestionsForFeed(
   args: ListQuestionsForFeedArgs = {},
-): Promise<QuestionRecord[]> {
+): Promise<QuestionFeedRecord[]> {
   const queryArgs: ListQuestionRecordsArgs = {
     tag: args.tag,
     sort: args.sort ?? "active",

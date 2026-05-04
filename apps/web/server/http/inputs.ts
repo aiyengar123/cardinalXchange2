@@ -48,9 +48,14 @@ export const cxcChatInput = z.object({
   messages: z.array(uiMessageSchema).min(1, "At least one message is required."),
 });
 
+export const cxcChatMessagesInput = z.object({
+  messages: z.array(uiMessageSchema),
+});
+
 export type CreateQuestionInputParsed = z.infer<typeof createQuestionInput>;
 export type CreateAnswerInputParsed = z.infer<typeof createAnswerInput>;
 export type CxcChatInputParsed = z.infer<typeof cxcChatInput>;
+export type CxcChatMessagesInputParsed = z.infer<typeof cxcChatMessagesInput>;
 
 /**
  * Lightweight wrappers that translate zod parse errors into `HttpError`
@@ -105,6 +110,16 @@ export function parseCxcChatInput(
   return result.data;
 }
 
+export function parseCxcChatMessagesInput(
+  payload: Record<string, unknown>,
+): CxcChatMessagesInputParsed {
+  const result = cxcChatMessagesInput.safeParse(payload);
+  if (!result.success) {
+    throw zodToHttpError(result.error, "invalid_chat_messages_input");
+  }
+  return result.data;
+}
+
 export function parseSearchInput(searchParams: URLSearchParams): {
   query: string;
   tag?: string;
@@ -150,6 +165,3 @@ function zodToHttpError(error: z.ZodError, code: string): HttpError {
 
   return new HttpError(400, code, message);
 }
-
-// Back-compat name used by tests / older imports while we migrate.
-export const createCxcChatInput = cxcChatInput;

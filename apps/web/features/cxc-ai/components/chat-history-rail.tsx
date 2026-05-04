@@ -11,6 +11,8 @@ type ChatHistoryRailProps = {
   sessions: AiChatSession[];
 };
 
+const RAIL_SESSION_LIMIT = 25;
+
 /**
  * Second left rail used only on `/cxc-ai/*`. Lists past CXC AI sessions
  * with a `New chat` link at the top. Active item (matching the current
@@ -22,6 +24,8 @@ export function ChatHistoryRail({ sessions }: ChatHistoryRailProps) {
   const sorted = [...sessions].sort(
     (a, b) => toTime(b.updatedAt) - toTime(a.updatedAt),
   );
+  const visible = sorted.slice(0, RAIL_SESSION_LIMIT);
+  const overflow = Math.max(0, sorted.length - visible.length);
 
   return (
     <nav
@@ -39,13 +43,13 @@ export function ChatHistoryRail({ sessions }: ChatHistoryRailProps) {
         <h2 className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
           Recent
         </h2>
-        {sorted.length === 0 ? (
+        {visible.length === 0 ? (
           <p className="px-1 text-xs text-[var(--color-ink-500)]">
             No past chats yet.
           </p>
         ) : (
           <ul className="flex flex-col gap-1">
-            {sorted.map((session) => {
+            {visible.map((session) => {
               const active = session.id === activeChatId;
               return (
                 <li key={session.id}>
@@ -78,6 +82,11 @@ export function ChatHistoryRail({ sessions }: ChatHistoryRailProps) {
             })}
           </ul>
         )}
+        {overflow > 0 ? (
+          <p className="mt-2 px-1 text-[11px] text-[var(--color-ink-500)]">
+            + {overflow} older
+          </p>
+        ) : null}
       </div>
     </nav>
   );

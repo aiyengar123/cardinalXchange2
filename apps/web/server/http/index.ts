@@ -11,16 +11,18 @@ export {
 } from "./http";
 export {
   createAnswerInput,
-  createCxcChatInput,
   createQuestionInput,
   cxcChatInput,
+  cxcChatMessagesInput,
   parseCreateAnswerInput,
   parseCreateQuestionInput,
   parseCxcChatInput,
+  parseCxcChatMessagesInput,
   parseSearchInput,
   type CreateAnswerInputParsed,
   type CreateQuestionInputParsed,
   type CxcChatInputParsed,
+  type CxcChatMessagesInputParsed,
 } from "./inputs";
 export type {
   AiChatMessage,

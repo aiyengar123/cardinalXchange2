@@ -11,7 +11,9 @@ export default function QuestionsError({
 }) {
   useEffect(() => {
     // Surface to dev console; no analytics yet.
-    console.error(error);
+    if (process.env.NODE_ENV === "development") {
+      console.error(error);
+    }
   }, [error]);
 
   return (

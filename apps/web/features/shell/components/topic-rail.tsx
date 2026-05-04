@@ -19,7 +19,7 @@ export function TopicRail() {
   return (
     <nav
       aria-label="Sections"
-      className="hidden w-[180px] shrink-0 py-6 pr-2 lg:block"
+      className="hidden w-[180px] shrink-0 py-6 pr-2 md:block"
     >
       <ul className="flex flex-col gap-1">
         {railTopics.map((topic) => {

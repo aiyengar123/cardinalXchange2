@@ -1,16 +1,19 @@
 export { prisma } from "./client";
 export {
   questionInclude,
+  questionFeedInclude,
   aiChatSessionInclude,
   type QuestionRecord,
+  type QuestionFeedRecord,
   type AiChatSessionRecord,
   type CreateQuestionRecordInput,
   type CreateAnswerRecordInput,
   type AiChatSourceInput,
   type PersistedAiChatMessageInput,
   type PersistedAiChatSourceInput,
-} from "./types";
+} from "./db.types";
 export {
+  DEFAULT_FEED_TAKE,
   listQuestionRecords,
   getQuestionRecord,
   searchQuestionRecords,

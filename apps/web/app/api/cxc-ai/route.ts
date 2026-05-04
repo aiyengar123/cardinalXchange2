@@ -1,22 +1,12 @@
-import { openai } from "@ai-sdk/openai";
-import {
-  convertToModelMessages,
-  createUIMessageStream,
-  createUIMessageStreamResponse,
-  streamText,
-  type UIMessage,
-} from "ai";
+import type { UIMessage } from "ai";
 
+import { getLatestUserText } from "@/server/cxc-ai/agents/cxc.agent";
 import {
-  buildCxcAiSystemPrompt,
-  buildFallbackAnswer,
-  createCxcAiTools,
-  cxcAiModelName,
-  cxcAiStopWhen,
-  getLatestUserText,
-} from "@/server/cxc-ai/agents/cxc.agent";
-import { replaceAiChatMessages } from "@/server/cxc-ai/services/chat.service";
+  ensureAiChatSession,
+  streamCxcAiTurn,
+} from "@/server/cxc-ai/services/chat.service";
 import { retrievePublicQuestionAnswerSources } from "@/server/cxc-ai/services/retrieval.service";
+import type { AiChatMessage } from "@/server/http/contracts";
 import { jsonError, readPayload } from "@/server/http/http";
 import { parseCxcChatInput } from "@/server/http/inputs";
 
@@ -37,49 +27,13 @@ export async function POST(request: Request) {
       limit: 6,
     });
 
-    // Persist the user-side of the turn before we begin streaming. The
-    // assistant message (and its sources) are persisted again at stream
-    // completion via the AI SDK consumer once it forwards the final
-    // `messages` array.
-    await replaceAiChatMessages(chatId, messages, sources);
+    // Make sure the session row exists before streaming begins so the rail
+    // can pick up new conversations on refresh. Full message + source
+    // persistence happens in `streamCxcAiTurn`'s `onFinish` callback once
+    // the assistant turn settles.
+    await ensureAiChatSession(chatId, messages as unknown as AiChatMessage[]);
 
-    return createUIMessageStreamResponse({
-      stream: createUIMessageStream({
-        async execute({ writer }) {
-          sources.forEach((source) => {
-            writer.write({
-              type: "source-url",
-              sourceId: source.id,
-              url: source.url,
-              title: `${source.label}: ${source.title}`,
-            });
-          });
-
-          if (!process.env.OPENAI_API_KEY) {
-            const textId = `fallback-${Date.now().toString(36)}`;
-            writer.write({ type: "text-start", id: textId });
-            writer.write({
-              type: "text-delta",
-              id: textId,
-              delta: buildFallbackAnswer(latestUserText, sources),
-            });
-            writer.write({ type: "text-end", id: textId });
-            return;
-          }
-
-          const result = streamText({
-            model: openai(cxcAiModelName),
-            system: buildCxcAiSystemPrompt(sources),
-            messages: await convertToModelMessages(messages),
-            tools: createCxcAiTools(),
-            stopWhen: cxcAiStopWhen,
-            maxOutputTokens: 900,
-          });
-
-          writer.merge(result.toUIMessageStream());
-        },
-      }),
-    });
+    return streamCxcAiTurn({ chatId, messages, sources });
   } catch (error) {
     return jsonError(error);
   }

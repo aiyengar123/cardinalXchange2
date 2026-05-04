@@ -18,7 +18,7 @@ export async function listAnswerRecords(questionIdOrSlug: string) {
       questionId: question.id,
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: "asc",
     },
   });
 }

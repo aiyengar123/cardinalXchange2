@@ -13,13 +13,52 @@ export const questionInclude = {
   },
   answers: {
     orderBy: {
-      createdAt: "desc",
+      createdAt: "asc",
+    },
+  },
+  _count: {
+    select: {
+      answers: true,
     },
   },
 } satisfies Prisma.QuestionInclude;
 
 export type QuestionRecord = Prisma.QuestionGetPayload<{
   include: typeof questionInclude;
+}>;
+
+/**
+ * Lightweight feed include — answers are capped at 1 (most recent) so the
+ * feed can compute "new answer N min ago" activity without pulling every
+ * answer body. Use `questionInclude` (full asc-ordered list) for the detail
+ * page.
+ */
+export const questionFeedInclude = {
+  tags: {
+    include: {
+      tag: true,
+    },
+    orderBy: {
+      tag: {
+        label: "asc",
+      },
+    },
+  },
+  answers: {
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 1,
+  },
+  _count: {
+    select: {
+      answers: true,
+    },
+  },
+} satisfies Prisma.QuestionInclude;
+
+export type QuestionFeedRecord = Prisma.QuestionGetPayload<{
+  include: typeof questionFeedInclude;
 }>;
 
 export const aiChatSessionInclude = {

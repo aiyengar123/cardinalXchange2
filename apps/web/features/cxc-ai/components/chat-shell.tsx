@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -53,25 +52,16 @@ export function ChatShell({
   }, [chatId, isNewChat, messages, router]);
 
   return (
-    <div className="flex w-full flex-col gap-4 px-6 py-6 sm:px-8">
+    <div className="flex w-full flex-col gap-4 px-6 sm:px-8">
       <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--color-border-default)] pb-4">
         <div className="min-w-0">
-          <h1
-            className="font-serif text-3xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-4xl"
-            style={{ borderRadius: "var(--radius-title)" }}
-          >
+          <h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-4xl">
             CXC AI
           </h1>
           <p className="mt-2 text-sm text-[var(--color-ink-500)]">
             Answers grounded in public CardinalXchange questions and answers.
           </p>
         </div>
-        <Link
-          className="inline-flex h-9 items-center justify-center border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-3 text-xs font-semibold text-[var(--color-ink-900)] transition-colors duration-150 ease-out hover:border-[var(--color-border-strong)] hover:bg-[var(--color-ink-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
-          href="/cxc-ai"
-        >
-          New chat
-        </Link>
       </header>
 
       <section

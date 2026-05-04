@@ -67,7 +67,7 @@ export function MessageComposer({ busy, onSend, onStop }: MessageComposerProps) 
         <div className="flex items-center gap-2">
           {busy && onStop ? (
             <button
-              className="inline-flex h-9 items-center justify-center border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-3 text-xs font-semibold text-[var(--color-ink-900)] transition-colors duration-150 ease-out hover:border-[var(--color-border-strong)] hover:bg-[var(--color-ink-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-3 text-xs font-semibold text-[var(--color-ink-900)] transition-colors duration-150 ease-out hover:border-[var(--color-border-strong)] hover:bg-[var(--color-ink-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
               onClick={onStop}
               type="button"
             >
@@ -75,7 +75,7 @@ export function MessageComposer({ busy, onSend, onStop }: MessageComposerProps) 
             </button>
           ) : null}
           <button
-            className="inline-flex h-9 items-center justify-center border border-transparent bg-[var(--color-cardinal-500)] px-4 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-4 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-[var(--color-border-default)] disabled:bg-[var(--color-ink-100)] disabled:text-[var(--color-ink-500)]"
             disabled={busy || !value.trim()}
             type="submit"
           >

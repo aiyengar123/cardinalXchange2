@@ -1,9 +1,10 @@
 import type { AnswerDto } from "@/server/http/contracts";
 
 /**
- * Renders every answer in `createdAt asc` order. The server already returns
- * the list sorted; this component is presentation only. Items are separated
- * by a 1px ink-100 divider, never a card with shadow.
+ * Renders every answer in `createdAt asc` order — oldest first, matching the
+ * spec. The server returns the list pre-sorted; this component is
+ * presentation only. Items are separated by a 1px ink-100 divider, never a
+ * card with shadow.
  */
 export function AnswerList({ answers }: { answers: AnswerDto[] }) {
   return (

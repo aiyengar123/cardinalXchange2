@@ -1,7 +1,6 @@
 export {
   search,
   searchInternalContext,
-  searchInternalContextDetailed,
 } from "./search.service";
 export {
   findInternalContext,

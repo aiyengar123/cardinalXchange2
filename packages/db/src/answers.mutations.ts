@@ -2,7 +2,7 @@ import { QuestionStatus } from "@prisma/client";
 
 import { prisma } from "./client";
 import { questionIdentityWhere } from "./questions.queries";
-import type { CreateAnswerRecordInput } from "./types";
+import type { CreateAnswerRecordInput } from "./db.types";
 
 export async function createAnswerRecord(
   questionIdOrSlug: string,

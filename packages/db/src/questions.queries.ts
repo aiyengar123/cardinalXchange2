@@ -1,7 +1,12 @@
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "./client";
-import { questionInclude, type QuestionRecord } from "./types";
+import {
+  questionFeedInclude,
+  questionInclude,
+  type QuestionFeedRecord,
+  type QuestionRecord,
+} from "./db.types";
 
 export type ListQuestionRecordsArgs = {
   tag?: string;
@@ -9,10 +14,12 @@ export type ListQuestionRecordsArgs = {
   take?: number;
 };
 
+export const DEFAULT_FEED_TAKE = 50;
+
 export async function listQuestionRecords(
   args: ListQuestionRecordsArgs = {},
-): Promise<QuestionRecord[]> {
-  const { tag, sort = "active", take } = args;
+): Promise<QuestionFeedRecord[]> {
+  const { tag, sort = "active", take = DEFAULT_FEED_TAKE } = args;
   const where: Prisma.QuestionWhereInput = {};
 
   if (tag && tag.trim().length > 0) {
@@ -38,7 +45,7 @@ export async function listQuestionRecords(
 
   return prisma.question.findMany({
     where,
-    include: questionInclude,
+    include: questionFeedInclude,
     orderBy,
     take,
   });

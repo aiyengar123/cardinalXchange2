@@ -9,7 +9,7 @@ import {
   questionInclude,
   type CreateQuestionRecordInput,
   type QuestionRecord,
-} from "./types";
+} from "./db.types";
 
 export async function createQuestionRecord(
   input: CreateQuestionRecordInput,

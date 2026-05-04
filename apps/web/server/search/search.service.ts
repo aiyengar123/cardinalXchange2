@@ -1,9 +1,8 @@
 import type {
   AiChatSource,
-  QuestionDetailDto,
   QuestionSummaryDto,
 } from "@/server/http/contracts";
-import { toDetailDto, toSummaryDto } from "@/server/questions/questions.service";
+import { toSummaryDto } from "@/server/questions/questions.mappers";
 import {
   findInternalContext,
   findMatchingQuestions,
@@ -56,17 +55,3 @@ export async function searchInternalContext(
   }));
 }
 
-/**
- * Convenience helper for callers that want full question detail (body +
- * nested answers) — kept for tooling that still expects the older shape.
- */
-export async function searchInternalContextDetailed(
-  query: string,
-  tags: string[] = [],
-): Promise<QuestionDetailDto[]> {
-  const records = await findMatchingQuestions({
-    query,
-    tag: tags[0],
-  });
-  return records.map(toDetailDto);
-}

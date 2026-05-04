@@ -3,10 +3,12 @@ export {
   getQuestionDetail,
   listQuestions,
   listQuestionsForFeed,
+} from "./questions.service";
+export {
   toAnswerDto,
   toDetailDto,
   toSummaryDto,
-} from "./questions.service";
+} from "./questions.mappers";
 export {
   findQuestionByIdentity,
   findQuestionsForFeed,

@@ -35,13 +35,13 @@ export default async function QuestionsPage({
     : questions;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 py-8 sm:px-8">
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--color-border-default)] pb-4">
+    <div className="mx-auto w-full max-w-4xl px-6 sm:px-8">
+      <header
+        className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--color-border-default)] pb-4"
+        id="tags"
+      >
         <div className="min-w-0">
-          <h1
-            className="font-serif text-4xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-5xl"
-            style={{ borderRadius: "var(--radius-title)" }}
-          >
+          <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-5xl">
             Questions
           </h1>
           {tag ? (
@@ -71,7 +71,7 @@ export default async function QuestionsPage({
         </div>
       </header>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-b border-[var(--color-border-default)] pb-4">
+      <div className="mt-6 flex flex-wrap items-center gap-2 pb-4">
         {SORT_OPTIONS.map((option) => {
           const active = (sort ?? "newest") === option.id;
           const href = sortHref({ sort: option.id, tag, query });
@@ -92,8 +92,11 @@ export default async function QuestionsPage({
         })}
       </div>
 
-      <div className="mt-6">
-        <QuestionFeed questions={filtered} />
+      <div className="mt-2">
+        <QuestionFeed
+          filter={{ tag, query: query || undefined }}
+          questions={filtered}
+        />
       </div>
     </div>
   );

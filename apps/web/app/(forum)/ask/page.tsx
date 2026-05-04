@@ -14,21 +14,18 @@ export default async function AskQuestionPage({
   const draft = decodeDraft(params.draft);
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 py-8 sm:px-8">
-      <div className="mb-6">
+    <div className="mx-auto w-full max-w-3xl px-6 sm:px-8">
+      <nav aria-label="Breadcrumb" className="mb-4">
         <Link
-          className="text-sm font-medium text-[var(--color-cardinal-500)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+          className="text-xs font-medium text-[var(--color-ink-500)] transition-colors duration-150 ease-out hover:text-[var(--color-ink-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
           href="/questions"
         >
-          ← Back to questions
+          Back to questions
         </Link>
-      </div>
+      </nav>
 
       <header className="mb-6 border-b border-[var(--color-border-default)] pb-4">
-        <h1
-          className="font-serif text-3xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-4xl"
-          style={{ borderRadius: "var(--radius-title)" }}
-        >
+        <h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-4xl">
           Ask a Question
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-500)]">
@@ -42,10 +39,15 @@ export default async function AskQuestionPage({
   );
 }
 
+const MAX_DRAFT_LENGTH = 8192;
+
 function decodeDraft(
   value: string | undefined,
 ): Partial<CreateQuestionInput> | undefined {
   if (!value) return undefined;
+  // Drafts arrive over the URL — cap parse work to avoid pathological
+  // inputs forcing the server to allocate megabytes during render.
+  if (value.length > MAX_DRAFT_LENGTH) return undefined;
   try {
     const parsed = JSON.parse(decodeURIComponent(value));
     if (parsed && typeof parsed === "object") {
