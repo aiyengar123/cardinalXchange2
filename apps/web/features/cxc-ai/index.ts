@@ -1,3 +1,4 @@
+export { ChatHistoryRail } from "./components/chat-history-rail";
 export { ChatShell } from "./components/chat-shell";
 export { MessageComposer } from "./components/message-composer";
 export { MessageList } from "./components/message-list";

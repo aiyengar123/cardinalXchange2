@@ -53,7 +53,7 @@ export function ChatShell({
   }, [chatId, isNewChat, messages, router]);
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-6 py-6 sm:px-8">
+    <div className="flex w-full flex-col gap-4 px-6 py-6 sm:px-8">
       <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--color-border-default)] pb-4">
         <div className="min-w-0">
           <h1
@@ -76,7 +76,7 @@ export function ChatShell({
 
       <section
         aria-label="Conversation"
-        className="flex min-h-[24rem] flex-col gap-4 border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-4 py-5 sm:px-6"
+        className="flex min-h-[40rem] flex-col gap-4 border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-4 py-5 sm:px-6"
       >
         <MessageList isStreaming={isBusy} messages={messages} />
         <div ref={tailRef} />

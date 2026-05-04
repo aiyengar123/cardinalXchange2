@@ -27,7 +27,7 @@ export function SideRail() {
 
         <div className="rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-4">
           <h2 className="text-sm font-semibold tracking-tight text-[var(--color-ink-900)]">
-            Topics
+            Tags
           </h2>
           <ul className="mt-3 flex flex-col gap-1">
             {topicTags.map((tag) => (

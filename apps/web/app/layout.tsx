@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 
-import { PageShell } from "@/features/shell";
-
 import { mono, sans, serif } from "./fonts";
 import "./globals.css";
 
@@ -25,9 +23,7 @@ export default function RootLayout({
       lang="en"
       className={`${sans.variable} ${serif.variable} ${mono.variable}`}
     >
-      <body>
-        <PageShell>{children}</PageShell>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

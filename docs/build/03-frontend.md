@@ -17,8 +17,8 @@ All four panels share:
   - Center: search input, full-width on the available track. Square corners, 1px border.
   - Right: `Ask Question` button (cardinal red, square corners, white text, slightly larger title-case label only — buttons are not titles, so square).
 - **Left rail** (`features/shell/components/topic-rail.tsx`)
-  - Items: `CXC AI`, `Questions`, `Topics`, `Trending`. Active item: cardinal-red left bar, bold label.
-  - Compact, square hit targets, no rounded pills.
+  - Items in order: `Home`, `Questions`, `Tags`, `CXC AI`. Active item: cardinal-red left bar, bold label.
+  - Compact, `rounded-md` hit targets allowed (square is also fine), no curved pills. (Updated from initial brief: rounded-md is now permitted on rail items, search input, primary buttons, filter tabs, and side-rail cards per user direction.)
 - **Content track**
   - Centered, max-width readable column.
   - Generous vertical rhythm; tight horizontal density on rows.
