@@ -3,12 +3,44 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "./client";
 import { questionInclude, type QuestionRecord } from "./types";
 
-export async function listQuestionRecords(): Promise<QuestionRecord[]> {
+export type ListQuestionRecordsArgs = {
+  tag?: string;
+  sort?: "newest" | "active" | "unanswered";
+  take?: number;
+};
+
+export async function listQuestionRecords(
+  args: ListQuestionRecordsArgs = {},
+): Promise<QuestionRecord[]> {
+  const { tag, sort = "active", take } = args;
+  const where: Prisma.QuestionWhereInput = {};
+
+  if (tag && tag.trim().length > 0) {
+    where.tags = {
+      some: {
+        tag: {
+          slug: tag.trim().toLowerCase(),
+        },
+      },
+    };
+  }
+
+  if (sort === "unanswered") {
+    where.answers = {
+      none: {},
+    };
+  }
+
+  const orderBy: Prisma.QuestionOrderByWithRelationInput =
+    sort === "newest"
+      ? { createdAt: "desc" }
+      : { lastActivityAt: "desc" };
+
   return prisma.question.findMany({
+    where,
     include: questionInclude,
-    orderBy: {
-      lastActivityAt: "desc",
-    },
+    orderBy,
+    take,
   });
 }
 
@@ -21,12 +53,34 @@ export async function getQuestionRecord(
   });
 }
 
+export type SearchQuestionRecordsArgs = {
+  query: string;
+  tags?: string[];
+  limit?: number;
+};
+
+/**
+ * Postgres-backed search over Question + Answer text. Ranking is two-pass:
+ *   1. Pull a candidate set via case-insensitive `contains` across title,
+ *      body, searchText, answer body, and tag label.
+ *   2. Score each candidate so title and tag matches outrank body-only
+ *      matches, with a small boost when the question has any answers.
+ *
+ * The tag filter is exclusive: passing `tags` restricts the candidate set
+ * to questions that carry one of the supplied tag slugs.
+ */
 export async function searchQuestionRecords(
-  query: string,
-  tags: string[] = [],
+  args: string | SearchQuestionRecordsArgs,
+  legacyTags: string[] = [],
 ): Promise<QuestionRecord[]> {
-  const trimmedQuery = query.trim();
-  const tagSlugs = normalizeTagLabels(tags).map((tag) => tag.slug);
+  const normalized: SearchQuestionRecordsArgs =
+    typeof args === "string"
+      ? { query: args, tags: legacyTags }
+      : args;
+
+  const trimmedQuery = normalized.query.trim();
+  const tagSlugs = normalizeTagLabels(normalized.tags ?? []).map((tag) => tag.slug);
+  const limit = clampLimit(normalized.limit ?? 12);
   const filters: Prisma.QuestionWhereInput[] = [];
 
   if (trimmedQuery.length > 0) {
@@ -69,14 +123,37 @@ export async function searchQuestionRecords(
     });
   }
 
-  return prisma.question.findMany({
+  const candidates = await prisma.question.findMany({
     where: filters.length > 0 ? { AND: filters } : undefined,
     include: questionInclude,
     orderBy: {
       lastActivityAt: "desc",
     },
-    take: 5,
+    take: Math.max(limit * 4, limit),
   });
+
+  if (trimmedQuery.length === 0) {
+    return candidates.slice(0, limit);
+  }
+
+  const needle = trimmedQuery.toLowerCase();
+
+  return candidates
+    .map((question) => ({
+      question,
+      score: rankQuestion(question, needle),
+    }))
+    .sort((first, second) => {
+      if (second.score !== first.score) {
+        return second.score - first.score;
+      }
+      return (
+        second.question.lastActivityAt.getTime() -
+        first.question.lastActivityAt.getTime()
+      );
+    })
+    .map(({ question }) => question)
+    .slice(0, limit);
 }
 
 export function questionIdentityWhere(
@@ -112,4 +189,43 @@ export function slugify(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 72);
+}
+
+function clampLimit(limit: number): number {
+  if (!Number.isFinite(limit) || limit <= 0) {
+    return 12;
+  }
+  return Math.min(Math.floor(limit), 50);
+}
+
+function rankQuestion(question: QuestionRecord, needle: string): number {
+  let score = 0;
+
+  if (question.title.toLowerCase().includes(needle)) {
+    score += 6;
+  }
+
+  for (const link of question.tags) {
+    if (link.tag.label.toLowerCase().includes(needle)) {
+      score += 4;
+      break;
+    }
+  }
+
+  if (question.body.toLowerCase().includes(needle)) {
+    score += 2;
+  }
+
+  for (const answer of question.answers) {
+    if (answer.body.toLowerCase().includes(needle)) {
+      score += 1;
+      break;
+    }
+  }
+
+  if (question.answers.length > 0) {
+    score += 0.25;
+  }
+
+  return score;
 }

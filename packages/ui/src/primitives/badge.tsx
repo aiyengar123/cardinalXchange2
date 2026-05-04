@@ -3,26 +3,53 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "../utils/cn";
 
+/**
+ * Square 1px-bordered label. Used for question tags and lightweight status
+ * markers. `Tag` is exported as an alias of this component because the spec
+ * collapses them into a single shape.
+ */
 const badgeVariants = cva(
-  "inline-flex min-h-6 items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
+  [
+    "inline-flex items-center",
+    "border",
+    "px-2 py-0.5",
+    "text-xs font-medium leading-none",
+    "rounded-none",
+    "min-h-5",
+  ].join(" "),
   {
     variants: {
-      variant: {
-        topic:
-          "border-graphite-200 bg-graphite-50 text-graphite-700 hover:border-graphite-300",
-        success:
-          "border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-300",
+      tone: {
+        neutral: [
+          "border-[var(--color-border-default)]",
+          "bg-[var(--color-surface-base)]",
+          "text-[var(--color-ink-700)]",
+        ].join(" "),
+        accent: [
+          "border-[var(--color-cardinal-500)]",
+          "bg-[var(--color-surface-base)]",
+          "text-[var(--color-cardinal-500)]",
+        ].join(" "),
       },
     },
     defaultVariants: {
-      variant: "topic",
+      tone: "neutral",
     },
   },
 );
 
-export type BadgeProps = React.HTMLAttributes<HTMLSpanElement> &
-  VariantProps<typeof badgeVariants>;
+export type BadgeTone = NonNullable<
+  VariantProps<typeof badgeVariants>["tone"]
+>;
 
-export function Badge({ className, variant, ...props }: BadgeProps) {
-  return <span className={cn(badgeVariants({ className, variant }))} {...props} />;
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof badgeVariants> {}
+
+export function Badge({ className, tone, ...props }: BadgeProps) {
+  return (
+    <span className={cn(badgeVariants({ tone }), className)} {...props} />
+  );
 }
+
+export default Badge;

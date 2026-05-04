@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import { TopCommandBar } from "@/features/shell/components/top-command-bar";
 
+import { mono, sans, serif } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${sans.variable} ${serif.variable} ${mono.variable}`}
+    >
       <body>
         <div className="bg-paper text-graphite-950 min-h-screen">
           <TopCommandBar />

@@ -1,53 +1,140 @@
 @import "tailwindcss";
 
 @source "../components";
+@source "../features";
 @source "../lib";
 @source "../../../packages/ui/src";
 
-@theme {
-  --font-sans:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+/* ------------------------------------------------------------------ */
+/* Design tokens — mirrored 1:1 from `packages/ui/src/tokens/*`.      */
+/* This is the runtime style source; the TS tokens are for docs and  */
+/* type-safe preview surfaces.                                        */
+/* ------------------------------------------------------------------ */
 
-  --color-paper: #f8f8f6;
+:root {
+  /* color · cardinal */
   --color-cardinal-50: #fff1f1;
-  --color-cardinal-100: #ffe1e1;
-  --color-cardinal-200: #ffc8c8;
-  --color-cardinal-300: #ffa2a2;
-  --color-cardinal-400: #fc6f6f;
-  --color-cardinal-500: #ef4444;
-  --color-cardinal-600: #cc2525;
-  --color-cardinal-700: #8c1515;
-  --color-cardinal-800: #7b1414;
-  --color-cardinal-900: #651313;
-  --color-cardinal-950: #360707;
+  --color-cardinal-500: #8c1515;
+  --color-cardinal-600: #7a1212;
+  --color-cardinal-700: #5e0e0e;
 
-  --color-graphite-50: #f6f6f4;
-  --color-graphite-100: #e9e8e3;
-  --color-graphite-200: #d7d4cc;
-  --color-graphite-300: #bdb8ac;
-  --color-graphite-400: #9b9485;
-  --color-graphite-500: #777163;
-  --color-graphite-600: #5d574d;
-  --color-graphite-700: #49443d;
-  --color-graphite-800: #34312c;
-  --color-graphite-900: #26231f;
-  --color-graphite-950: #15130f;
+  /* color · ink */
+  --color-ink-900: #0a0a0a;
+  --color-ink-700: #2a2a2a;
+  --color-ink-500: #5a5a5a;
+  --color-ink-300: #a0a0a0;
+  --color-ink-100: #e6e6e6;
+  --color-ink-50: #f5f5f5;
 
-  --color-gold-50: #fff8e5;
-  --color-gold-100: #ffedb8;
-  --color-gold-200: #ffdc7a;
-  --color-gold-600: #b77900;
-  --color-gold-700: #875a05;
-  --color-gold-800: #6f4b09;
+  /* color · surface */
+  --color-surface-base: #ffffff;
+  --color-surface-sunk: #fafafa;
+
+  /* color · border */
+  --color-border-default: #e6e6e6;
+  --color-border-strong: #d0d0d0;
+  --color-border-focus: #8c1515;
+
+  /* color · state */
+  --color-state-danger: #b00020;
+  --color-state-success: #0a6e3d;
+
+  /* radius */
+  --radius-none: 0px;
+  --radius-hairline: 2px;
+  --radius-title: 6px;
+
+  /* spacing (4px scale) */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* type · size */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 36px;
+  --text-5xl: 48px;
+
+  /* type · leading */
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  /* type · tracking */
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+
+  /* shadows — overlays only. No body-content shadows. */
+  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
+
+/* ------------------------------------------------------------------ */
+/* Tailwind v4 theme. Reads from the variables above so the tokens    */
+/* are the single source of truth.                                    */
+/* ------------------------------------------------------------------ */
+
+@theme inline {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --color-cardinal-50: var(--color-cardinal-50);
+  --color-cardinal-500: var(--color-cardinal-500);
+  --color-cardinal-600: var(--color-cardinal-600);
+  --color-cardinal-700: var(--color-cardinal-700);
+
+  --color-ink-50: var(--color-ink-50);
+  --color-ink-100: var(--color-ink-100);
+  --color-ink-300: var(--color-ink-300);
+  --color-ink-500: var(--color-ink-500);
+  --color-ink-700: var(--color-ink-700);
+  --color-ink-900: var(--color-ink-900);
+
+  --color-surface-base: var(--color-surface-base);
+  --color-surface-sunk: var(--color-surface-sunk);
+
+  --color-border-default: var(--color-border-default);
+  --color-border-strong: var(--color-border-strong);
+  --color-border-focus: var(--color-border-focus);
+
+  --radius-none: var(--radius-none);
+  --radius-hairline: var(--radius-hairline);
+  --radius-title: var(--radius-title);
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body {
+  background: var(--color-surface-base);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
 html {
-  background: #f8f8f6;
   color-scheme: light;
   scroll-behavior: smooth;
 }
@@ -55,16 +142,24 @@ html {
 body {
   margin: 0;
   min-width: 320px;
-  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
   font-feature-settings:
     "rlig" 1,
     "calt" 1;
-  letter-spacing: 0;
+}
+
+/* Square-corner default everywhere. Primitives that need `hairline` or
+   `title` opt in explicitly. */
+*,
+*::before,
+*::after {
+  border-radius: var(--radius-none);
 }
 
 ::selection {
-  background: #ffc8c8;
-  color: #360707;
+  background: var(--color-cardinal-500);
+  color: #ffffff;
 }
 
 button,

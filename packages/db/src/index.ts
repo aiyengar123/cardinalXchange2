@@ -14,6 +14,11 @@ export {
   listQuestionRecords,
   getQuestionRecord,
   searchQuestionRecords,
+  questionIdentityWhere,
+  normalizeTagLabels,
+  slugify,
+  type ListQuestionRecordsArgs,
+  type SearchQuestionRecordsArgs,
 } from "./questions.queries";
 export { createQuestionRecord } from "./questions.mutations";
 export { listAnswerRecords } from "./answers.queries";
@@ -22,6 +27,10 @@ export {
   createAiChatSessionRecord,
   getAiChatSessionRecord,
   listAiChatSessionRecords,
+  searchInternalContext,
+  type InternalContextRow,
+  type InternalContextSourceKind,
+  type SearchInternalContextArgs,
 } from "./cxc.queries";
 export {
   ensureAiChatSessionRecord,

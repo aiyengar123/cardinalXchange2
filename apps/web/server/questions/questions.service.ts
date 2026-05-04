@@ -1,9 +1,4 @@
 import type { QuestionRecord } from "@cardinalxchange/db";
-import {
-  createQuestionRecord,
-  getQuestionRecord,
-  listQuestionRecords,
-} from "@cardinalxchange/db";
 
 import { getViewer } from "@/lib/viewer";
 import type {
@@ -15,16 +10,32 @@ import type {
   QuestionTagDto,
 } from "@/server/http/contracts";
 import { HttpError } from "@/server/http/http";
+import {
+  findQuestionByIdentity,
+  findQuestionsForFeed,
+} from "@/server/questions/questions.queries";
+import { persistQuestion } from "@/server/questions/questions.mutations";
+import type { ListQuestionsForFeedArgs } from "@/server/questions/questions.types";
 
+export async function listQuestionsForFeed(
+  args: ListQuestionsForFeedArgs = {},
+): Promise<QuestionSummaryDto[]> {
+  const records = await findQuestionsForFeed(args);
+  return records.map(toSummaryDto);
+}
+
+/**
+ * @deprecated Prefer `listQuestionsForFeed`. Kept temporarily so existing
+ * server-component callers keep building during the Wave 2 transition.
+ */
 export async function listQuestions(): Promise<QuestionSummaryDto[]> {
-  const questions = await listQuestionRecords();
-  return questions.map(toSummaryDto);
+  return listQuestionsForFeed();
 }
 
 export async function getQuestionDetail(
   questionId: string,
 ): Promise<QuestionDetailDto> {
-  const question = await getQuestionRecord(questionId);
+  const question = await findQuestionByIdentity(questionId);
 
   if (!question) {
     throw new HttpError(404, "question_not_found", "Question not found.");
@@ -33,9 +44,11 @@ export async function getQuestionDetail(
   return toDetailDto(question);
 }
 
-export async function createQuestion(input: CreateQuestionInput) {
+export async function createQuestion(
+  input: CreateQuestionInput,
+): Promise<QuestionDetailDto> {
   const viewer = await getViewer();
-  const question = await createQuestionRecord({
+  const question = await persistQuestion({
     title: input.title,
     body: input.body,
     tags: input.tags,

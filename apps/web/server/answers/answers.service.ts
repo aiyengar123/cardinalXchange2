@@ -1,13 +1,17 @@
-import { createAnswerRecord, listAnswerRecords } from "@cardinalxchange/db";
+import { listAnswerRecords } from "@cardinalxchange/db";
 
 import { getViewer } from "@/lib/viewer";
 import type { AnswerDto, CreateAnswerInput } from "@/server/http/contracts";
 import { HttpError } from "@/server/http/http";
+import { persistAnswer } from "@/server/answers/answers.mutations";
 import { toAnswerDto } from "@/server/questions/questions.service";
 
-export async function addAnswer(questionId: string, input: CreateAnswerInput) {
+export async function addAnswer(
+  questionId: string,
+  input: CreateAnswerInput,
+): Promise<AnswerDto> {
   const viewer = await getViewer();
-  const answer = await createAnswerRecord(questionId, {
+  const answer = await persistAnswer(questionId, {
     body: input.body,
     authorName: input.authorDisplayName ?? viewer.displayName,
     authorMeta: input.authorMeta ?? viewer.meta,

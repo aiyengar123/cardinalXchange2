@@ -2,12 +2,26 @@ import { jsonError, jsonOk, readPayload } from "@/server/http/http";
 import { parseCreateQuestionInput } from "@/server/http/inputs";
 import {
   createQuestion,
-  listQuestions,
+  listQuestionsForFeed,
 } from "@/server/questions/questions.service";
+import type { FeedSort } from "@/server/questions/questions.types";
 
-export async function GET() {
+const ALLOWED_SORTS: ReadonlySet<FeedSort> = new Set([
+  "newest",
+  "active",
+  "unanswered",
+]);
+
+export async function GET(request: Request) {
   try {
-    return jsonOk({ questions: await listQuestions() });
+    const { searchParams } = new URL(request.url);
+    const sortParam = searchParams.get("sort") as FeedSort | null;
+    const sort: FeedSort | undefined =
+      sortParam && ALLOWED_SORTS.has(sortParam) ? sortParam : undefined;
+    const tag = searchParams.get("tag")?.trim() || undefined;
+
+    const questions = await listQuestionsForFeed({ tag, sort });
+    return jsonOk({ questions });
   } catch (error) {
     return jsonError(error);
   }

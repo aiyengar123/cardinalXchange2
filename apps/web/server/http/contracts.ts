@@ -23,6 +23,13 @@ export type QuestionSummaryDto = {
   activity: string;
 };
 
+/**
+ * `QuestionRowDto` is the compact feed-row shape. It is the same data
+ * `QuestionSummaryDto` already exposes; kept as a named alias so the
+ * Frontend Agent and the brief stay aligned on naming.
+ */
+export type QuestionRowDto = QuestionSummaryDto;
+
 export type AnswerDto = {
   id: string;
   questionId: string;
@@ -85,3 +92,10 @@ export type AiChatSnapshot = {
   session: AiChatSession;
   messages: AiChatMessage[];
 };
+
+/**
+ * Brief-named aliases. Frontend Agent should prefer these names to stay
+ * aligned with `docs/build/02-backend.md`.
+ */
+export type CxcMessageDto = AiChatMessage;
+export type CxcSourceDto = AiChatSource;

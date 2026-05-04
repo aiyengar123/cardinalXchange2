@@ -1,17 +1,66 @@
 import type { AiChatSource } from "@/server/http/contracts";
+import { searchInternalContext } from "@/server/search/search.service";
+import { fetchWebContext } from "@/server/cxc-ai/services/web-context.service";
 
 type RetrievePublicSourcesArgs = {
   query: string;
   tags?: string[];
   limit?: number;
+  includeWeb?: boolean;
 };
 
+/**
+ * Pulls source-labeled context for a CXC AI turn.
+ *
+ * Internal retrieval is restricted to public `Question`/`Answer` records via
+ * `searchInternalContext`. Optional web context is opt-in (driven by
+ * `WEB_CONTEXT_ENDPOINT`) and is appended after internal results so internal
+ * sources are preferred during prompt assembly.
+ */
 export async function retrievePublicQuestionAnswerSources({
   query,
   tags = [],
   limit = 6,
+  includeWeb = true,
 }: RetrievePublicSourcesArgs): Promise<AiChatSource[]> {
-  const sources = await searchQuestionContext(query, tags);
+  const trimmed = query.trim();
+  if (trimmed.length === 0) {
+    return [];
+  }
+
+  const internal = await safeInternal(trimmed, tags, limit);
+  if (!includeWeb) {
+    return rank(internal, trimmed).slice(0, limit);
+  }
+
+  const remaining = Math.max(0, limit - internal.length);
+  const web =
+    remaining > 0 ? await safeWeb(trimmed, remaining) : [];
+
+  return rank([...internal, ...web], trimmed).slice(0, limit);
+}
+
+async function safeInternal(
+  query: string,
+  tags: string[],
+  limit: number,
+): Promise<AiChatSource[]> {
+  try {
+    return await searchInternalContext(query, { limit, tags });
+  } catch {
+    return [];
+  }
+}
+
+async function safeWeb(query: string, limit: number): Promise<AiChatSource[]> {
+  try {
+    return await fetchWebContext(query, { limit });
+  } catch {
+    return [];
+  }
+}
+
+function rank(sources: AiChatSource[], query: string): AiChatSource[] {
   const queryTerms = tokenize(query);
 
   return sources
@@ -20,55 +69,29 @@ export async function retrievePublicQuestionAnswerSources({
       score: scoreSource(source, queryTerms),
     }))
     .sort((first, second) => second.score - first.score)
-    .map(({ source }) => source)
-    .slice(0, limit);
-}
-
-async function searchQuestionContext(
-  query: string,
-  tags: string[],
-): Promise<AiChatSource[]> {
-  try {
-    const search = await import("@/server/search/search.service");
-    const results = await search.searchInternalContext(query, tags);
-    return results.flatMap((question) => {
-      const questionSource: AiChatSource = {
-        id: `question:${question.id}`,
-        kind: "question",
-        label: "Question",
-        title: question.title,
-        snippet: question.body,
-        questionId: question.id,
-        url: `/questions/${question.id}`,
-      };
-      const answerSources = question.answersList.map(
-        (answer): AiChatSource => ({
-          id: `answer:${answer.id}`,
-          kind: "answer",
-          label: "Answer",
-          title: `Answer on: ${question.title}`,
-          snippet: answer.body,
-          questionId: question.id,
-          answerId: answer.id,
-          url: `/questions/${question.id}#${answer.id}`,
-        }),
-      );
-
-      return [questionSource, ...answerSources];
-    });
-  } catch {
-    return [];
-  }
+    .map(({ source }) => source);
 }
 
 function scoreSource(source: AiChatSource, queryTerms: string[]): number {
-  const haystack = `${source.title} ${source.snippet}`.toLowerCase();
-  const termScore = queryTerms.reduce(
-    (score, term) => score + (haystack.includes(term) ? 1 : 0),
-    0,
-  );
-  const kindScore = source.kind === "answer" ? 0.25 : 0;
-  return termScore + kindScore;
+  const title = source.title.toLowerCase();
+  const snippet = source.snippet.toLowerCase();
+  let score = 0;
+
+  for (const term of queryTerms) {
+    if (title.includes(term)) {
+      score += 2;
+    } else if (snippet.includes(term)) {
+      score += 1;
+    }
+  }
+
+  if (source.kind === "question") {
+    score += 0.4;
+  } else if (source.kind === "answer") {
+    score += 0.25;
+  }
+
+  return score;
 }
 
 function tokenize(value: string): string[] {

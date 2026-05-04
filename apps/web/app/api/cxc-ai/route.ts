@@ -15,28 +15,32 @@ import {
   cxcAiStopWhen,
   getLatestUserText,
 } from "@/server/cxc-ai/agents/cxc.agent";
-import { retrievePublicQuestionAnswerSources } from "@/server/cxc-ai/services/retrieval.service";
 import { replaceAiChatMessages } from "@/server/cxc-ai/services/chat.service";
-import { HttpError } from "@/server/http/http";
+import { retrievePublicQuestionAnswerSources } from "@/server/cxc-ai/services/retrieval.service";
+import { jsonError, readPayload } from "@/server/http/http";
+import { parseCxcChatInput } from "@/server/http/inputs";
 
 export const maxDuration = 30;
 
-type ChatPayload = {
-  id?: unknown;
-  messages?: unknown;
-};
-
 export async function POST(request: Request) {
   try {
-    const payload = (await request.json()) as ChatPayload;
-    const chatId = parseChatId(payload.id);
-    const messages = parseMessages(payload.messages);
+    const payload = await readPayload(request);
+    const parsed = parseCxcChatInput(payload);
+    const chatId = parsed.id;
+    // The zod schema validates the structural shape; AI SDK's UIMessagePart
+    // union is too granular to express precisely with passthrough, so we
+    // re-type after validation rather than narrowing every variant.
+    const messages = parsed.messages as unknown as UIMessage[];
     const latestUserText = getLatestUserText(messages);
     const sources = await retrievePublicQuestionAnswerSources({
       query: latestUserText,
       limit: 6,
     });
 
+    // Persist the user-side of the turn before we begin streaming. The
+    // assistant message (and its sources) are persisted again at stream
+    // completion via the AI SDK consumer once it forwards the final
+    // `messages` array.
     await replaceAiChatMessages(chatId, messages, sources);
 
     return createUIMessageStreamResponse({
@@ -77,50 +81,6 @@ export async function POST(request: Request) {
       }),
     });
   } catch (error) {
-    if (error instanceof HttpError) {
-      return Response.json(
-        { error: error.code, message: error.message },
-        { status: error.status },
-      );
-    }
-
-    return Response.json(
-      { error: "cxc_ai_chat_failed", message: "CXC AI chat failed." },
-      { status: 500 },
-    );
+    return jsonError(error);
   }
-}
-
-function parseChatId(value: unknown): string {
-  if (typeof value !== "string" || value.trim().length === 0) {
-    throw new HttpError(400, "missing_chat_id", "chat id is required.");
-  }
-
-  return value.trim().slice(0, 120);
-}
-
-function parseMessages(value: unknown): UIMessage[] {
-  if (!Array.isArray(value)) {
-    throw new HttpError(400, "invalid_messages", "messages must be an array.");
-  }
-
-  const messages = value.filter(isUiMessage);
-  if (messages.length === 0) {
-    throw new HttpError(400, "invalid_messages", "at least one message is required.");
-  }
-
-  return messages;
-}
-
-function isUiMessage(value: unknown): value is UIMessage {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const message = value as Partial<UIMessage>;
-  return (
-    typeof message.id === "string" &&
-    (message.role === "user" || message.role === "assistant" || message.role === "system") &&
-    Array.isArray(message.parts)
-  );
 }
