@@ -2,19 +2,12 @@
 
 ## What changed (in scope)
 
-- `apps/web/app/(forum)/layout.tsx` — switched the route-group `PageShell`
-  config to `containerClassName="mr-auto max-w-[1600px] pl-6 sm:pl-12"` so
-  the rail anchors to the left of the viewport at wide widths instead of
-  drifting toward the centre. This matches the Stack Overflow whitespace
-  gap the user asked for and aligns this group with the existing `/cxc-ai`
-  layout. (`(forum)/layout.tsx` is the route-group config that selects
-  `PageShell` props — `PageShell` itself is untouched.) Verified `/questions`
-  still renders correctly with the new container.
 - `apps/web/app/(forum)/ask/page.tsx` — dropped the `Back to questions`
-  breadcrumb (not in the canonical image) and rewrote the subtitle to match
-  the image copy verbatim.
-- `apps/web/features/ask/components/ask-form.tsx` — full rewrite of the form
-  to match the canonical panel:
+  breadcrumb (not in the canonical image), rewrote the subtitle to match
+  the image copy verbatim, and the page wrapper is now `w-full` (no inner
+  max-width / mx-auto) so the form fills the new full-width main column.
+- `apps/web/features/ask/components/ask-form.tsx` — full rewrite of the
+  form to match the canonical panel:
   - Title placeholder + helper copy match the image.
   - "Body" → **Details** label, with a markdown toolbar (Bold, Italic, Inline
     code, Link, Bulleted list, Numbered list, Undo, Redo) wrapping the
@@ -26,25 +19,28 @@
   - Tags: cap dropped from 8 → 5; placeholder
     `Add up to 5 tags (e.g. eduroam, access, dataviz)`; helper
     `Use specific tags to help others find your question.`
-  - Bottom action row: `Cancel` (square outlined link to `/questions`) on the
-    left, `Submit Question` (cardinal red) on the right, separated from the
-    fields by a 1px top divider.
+  - Bottom action row: `Cancel` (square outlined link to `/questions`) on
+    the left, `Submit Question` (cardinal red) on the right, separated from
+    the fields by a 1px top divider.
   - Empty-body validation message updated to `Details are required.`
 - `apps/web/app/(forum)/ask/loading.tsx` — rewrote the skeleton to match the
-  new layout (no breadcrumb, header + 3 fields + Cancel/Submit row).
+  new layout (no breadcrumb, header + 3 fields + Cancel/Submit row,
+  `w-full` wrapper to mirror the live page).
 
-## Out-of-scope shell pieces
+## Out-of-scope shell pieces (all shipped by coordinator)
 
-The earlier shared-shell items shipped (logo `S` badge, search placeholder,
-rail items + active state, no right SideRail, brighter cardinal red, single
-Inter font stack).
-
-One residual top-bar alignment issue is now logged in
-`02-ask-shared-needs.md`: at 1440+ viewports the top-command-bar wordmark
-sits ~50–300px right of the rail because the bar still uses
-`mx-auto max-w-[1264px]` while the forum row uses
-`mr-auto max-w-[1600px] pl-6 sm:pl-12`. Fix is in
-`top-command-bar.tsx` (shared shell).
+- White top bar with cardinal-red `S` mark + cardinal-red wordmark.
+- Magnifying-glass search icon.
+- Cardinal-red `Ask Question` button.
+- Rail with 5 items + icons in 3 sections separated by visible divider lines,
+  sticky positioning, `Ask` highlights when on `/ask`.
+- No right `SideRail` on forum routes.
+- Inter is the only font; `font-serif` aliases to Inter.
+- Brighter cardinal red (`#C8102E`).
+- Forum container: `mx-auto max-w-[1600px] px-4 sm:px-6`,
+  `mainMaxWidthClass="max-w-none"`, `sideRail={null}`.
+- Tailwind v4 spacing + border-radius regressions fixed (gap/m/p/space and
+  rounded-* utilities now produce CSS).
 
 ## Image element → what is implemented
 
@@ -53,8 +49,8 @@ sits ~50–300px right of the rail because the bar still uses
 | White top bar with `S` badge + cardinal wordmark | Live (shell). |
 | Search input + magnifier icon | Live (shell). |
 | Cardinal-red `Ask Question` button | Live (shell). |
-| Rail: Home / Questions / Ask (active) / CXC AI / Tags | Live (shell), now anchored left. |
-| `Ask a Question` heading | `<h1>` in Inter, `text-3xl sm:text-4xl`, ink-900. |
+| Rail: Home / Questions / Ask (active) / CXC AI / Tags | Live (shell). |
+| `Ask a Question` heading | `<h1>` Inter, `text-3xl sm:text-4xl`, ink-900. |
 | Subtitle copy | "Get help from the Stanford community by asking a clear, detailed question." |
 | Title input, square + 1px border, focus ring | `h-10` rounded-md input, cardinal-red focus ring. |
 | Title helper | "Be specific and imagine you're asking a question to another person." |
@@ -63,24 +59,29 @@ sits ~50–300px right of the rail because the bar still uses
 | Tags input with example | `Add up to 5 tags (e.g. eduroam, access, dataviz)` placeholder + chip pills when committed. |
 | Tags helper line | "Use specific tags to help others find your question." |
 | Cancel + Submit Question row | `Cancel` Link (secondary, square) on the left, `Submit Question` button (cardinal red) on the right, 1px top divider above. |
-| Whitespace gap before rail (Stack Overflow parity) | Forum container is now `mr-auto max-w-[1600px] pl-6 sm:pl-12`. |
 
 ## Verification
 
 - `pnpm typecheck` — ✓ (turbo: 4/4 successful).
 - `pnpm lint` — ✓ (turbo: 4/4 successful, eslint --max-warnings=0).
-- Real submission via the form (not curl): filled `Title`, `Details`, two
-  tags via Enter, clicked `Submit Question`. Browser landed on
-  `/questions/where-can-i-find-quiet-study-space-in-green-library-on-weekends`,
-  row + tag rows present in Postgres.
-- Bold-button regression test: selected `this` inside
-  `make this bold please` and clicked **B** — textarea value became
+- Real submission via the form (1440×900 viewport, post-shell update):
+  filled `Title`, `Details`, two tags via Enter, clicked
+  `Submit Question`. Browser landed on
+  `/questions/how-do-i-sign-up-for-the-stanford-vpn-with-my-sunet-id`,
+  the row + both tag rows present in Postgres:
+
+  ```
+  slug:  how-do-i-sign-up-for-the-stanford-vpn-with-my-sunet-id
+  title: How do I sign up for the Stanford VPN with my SUNet ID?
+  tags:  vpn, library
+  ```
+
+- Bold-button regression (still good): selected `this` inside
+  `make this bold please` and clicked **B** → textarea value
   `make **this** bold please`.
-- Screenshots after the SO-whitespace fix:
-  - `/tmp/ask-1440-fixed.png` (1440×900) — committed at
-    `docs/build/tasks/notes/02-ask-screenshot.png`.
-  - `/tmp/ask-1920-fixed.png` (1920×1080) — rail now sits ~48px from the
-    viewport edge instead of ~352px; matches the Stack Overflow reference
-    the user provided.
-  - `/tmp/questions-1440.png` — verified the sibling `/questions` route also
-    renders correctly under the new forum layout.
+- Screenshots:
+  - `docs/build/tasks/notes/02-ask-screenshot.png` — empty form, 1440×900.
+  - `docs/build/tasks/notes/02-ask-screenshot-filled.png` — filled form,
+    1440×900, with tag chips visible.
+
+CONVERGED

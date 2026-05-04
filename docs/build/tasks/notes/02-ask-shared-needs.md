@@ -1,30 +1,17 @@
-# Task 02 — Shared shell deltas (out of my scope)
+# Task 02 — Shared shell deltas
 
-## Resolved by coordinator
+All previously flagged shared-shell items have shipped:
 
-The earlier deltas in this file (logo `S` badge, search placeholder, rail
-items + active state, removal of right SideRail, brighter cardinal red,
-single-Inter font stack) have all shipped on the shared shell.
+- White top bar with cardinal-red `S` mark + cardinal-red wordmark.
+- Magnifying-glass search icon, brighter cardinal red (`#C8102E`).
+- 5-item rail (Home / Questions / Ask / CXC AI / Tags) with icons, sticky
+  positioning, and visible section dividers; `Ask` highlights on `/ask`.
+- No right `SideRail` on forum routes.
+- Inter is the only font.
+- Forum container is `mx-auto max-w-[1600px] px-4 sm:px-6` with
+  `mainMaxWidthClass="max-w-none"` so whitespace flows symmetrically outside
+  the content on wide viewports — Stack Overflow style.
+- Tailwind v4 spacing + border-radius regressions fixed (gap/m/p/space and
+  rounded-* utilities now produce CSS).
 
-## New: top-bar wordmark vs rail horizontal alignment
-
-After switching the `(forum)` route layout to `containerClassName="mr-auto
-max-w-[1600px] pl-6 sm:pl-12"` (matching `/cxc-ai`'s left-anchored row), the
-left rail now starts at `pl-12` from the viewport edge — which matches the
-Stack Overflow whitespace gap the user asked for.
-
-`TopCommandBar` still uses its own `mx-auto max-w-[1264px]` container, so at
-wide viewports (1440+) the cardinal-red `S` wordmark sits a little to the
-right of the rail underneath it, while the rail anchors hard left. To keep
-the top bar and the rail vertically aligned at every viewport, the top bar
-needs the same left-anchored container constraints as the forum / cxc-ai
-row.
-
-Suggested change (shared shell — `apps/web/features/shell/components/top-command-bar.tsx`):
-
-```tsx
-<div className="mr-auto flex max-w-[1600px] flex-col gap-2 pl-6 pr-4 py-3 sm:flex-row sm:h-[68px] sm:items-center sm:gap-4 sm:py-0 sm:pl-12 sm:pr-6">
-```
-
-The `/cxc-ai` route already exhibits the same misalignment under the current
-shell, so a fix here will benefit both forum and cxc-ai routes.
+No outstanding shared-shell asks from `/ask`.

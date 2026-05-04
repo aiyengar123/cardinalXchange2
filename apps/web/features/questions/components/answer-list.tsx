@@ -10,9 +10,7 @@ import { Markdown } from "@/features/questions/components/markdown";
  */
 export function AnswerList({ answers }: { answers: AnswerDto[] }) {
   const heading =
-    answers.length === 0
-      ? "Answers"
-      : `${answers.length} ${answers.length === 1 ? "Answer" : "Answers"}`;
+    answers.length === 0 ? "Answers" : `Answers (${answers.length})`;
 
   return (
     <section

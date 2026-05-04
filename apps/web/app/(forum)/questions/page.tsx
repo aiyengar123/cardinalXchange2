@@ -92,7 +92,7 @@ export default async function QuestionsPage({
         })}
       </nav>
 
-      <div>
+      <div className="mt-4">
         <QuestionFeed
           filter={{ tag, query: query || undefined }}
           questions={filtered}
