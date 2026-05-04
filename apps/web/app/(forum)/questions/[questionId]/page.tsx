@@ -5,8 +5,8 @@ import {
   AnswerList,
   QuestionDetail,
 } from "@/features/questions";
-import { HttpError } from "@/server/http/http";
-import { getQuestionDetail } from "@/server/questions/questions.service";
+import { HttpError } from "@/backend/http/http";
+import { getQuestionDetail } from "@/backend/questions/questions.service";
 
 type QuestionDetailPageProps = {
   params: Promise<{ questionId: string }>;

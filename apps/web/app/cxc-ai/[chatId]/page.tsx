@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ChatShell } from "@/features/cxc-ai";
-import { findAiChatSnapshot } from "@/server/cxc-ai/services/chat.service";
+import { findAiChatSnapshot } from "@/backend/cxc-ai/services/chat.service";
 
 type CxcAiChatPageProps = {
   params: Promise<{ chatId: string }>;

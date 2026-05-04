@@ -3,15 +3,15 @@ import type { UIMessage } from "ai";
 import {
   getLatestUserText,
   isTrivialQuery,
-} from "@/server/cxc-ai/agents/cxc.agent";
+} from "@/backend/cxc-ai/agents/cxc.agent";
 import {
   ensureAiChatSession,
   streamCxcAiTurn,
-} from "@/server/cxc-ai/services/chat.service";
-import { retrievePublicQuestionAnswerSources } from "@/server/cxc-ai/services/retrieval.service";
-import type { AiChatMessage } from "@/server/http/contracts";
-import { jsonError, readPayload } from "@/server/http/http";
-import { parseCxcChatInput } from "@/server/http/inputs";
+} from "@/backend/cxc-ai/services/chat.service";
+import { retrievePublicQuestionAnswerSources } from "@/backend/cxc-ai/services/retrieval.service";
+import type { AiChatMessage } from "@/backend/http/contracts";
+import { jsonError, readPayload } from "@/backend/http/http";
+import { parseCxcChatInput } from "@/backend/http/inputs";
 
 export const maxDuration = 30;
 

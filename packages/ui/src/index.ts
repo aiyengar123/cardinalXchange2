@@ -2,7 +2,7 @@
  * Public surface of `@cardinalxchange/ui`.
  *
  * Tokens, primitives, and the `cn` className helper. This package is
- * client-safe — it must never import from `@cardinalxchange/db`, `@/server/*`,
+ * client-safe — it must never import from `@cardinalxchange/db`, `@/backend/*`,
  * or any AI/auth code.
  */
 

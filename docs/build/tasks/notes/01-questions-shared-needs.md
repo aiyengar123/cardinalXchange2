@@ -2,7 +2,7 @@
 
 The local /questions content matches the top-left panel of the canonical
 image. The remaining differences are all in shared-shell components
-(`apps/web/features/shell/...`) which task 01 cannot edit. Listed here so
+(`apps/web/frontend/features/shell/...`) which task 01 cannot edit. Listed here so
 the user can reconcile.
 
 ## TopCommandBar (`features/shell/components/top-command-bar.tsx`)
@@ -16,7 +16,7 @@ the user can reconcile.
 3. **Search trailing icon.** Canonical shows a magnifier glyph at the
    right edge of the search input. Current input is plain text only.
 
-## TopicRail (`features/shell/components/topic-rail.tsx` + `apps/web/data/topics.data.ts`)
+## TopicRail (`frontend/features/shell/components/topic-rail.tsx` + `apps/web/shared/data/topics.data.ts`)
 
 1. **Rail order and entries.** Canonical order is
    `Home / Questions / Ask / CXC AI / Tags`. Current `railTopics` is

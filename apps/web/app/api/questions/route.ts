@@ -1,10 +1,10 @@
-import { jsonError, jsonOk, readPayload } from "@/server/http/http";
-import { parseCreateQuestionInput } from "@/server/http/inputs";
+import { jsonError, jsonOk, readPayload } from "@/backend/http/http";
+import { parseCreateQuestionInput } from "@/backend/http/inputs";
 import {
   createQuestion,
   listQuestionsForFeed,
-} from "@/server/questions/questions.service";
-import type { FeedSort } from "@/server/questions/questions.types";
+} from "@/backend/questions/questions.service";
+import type { FeedSort } from "@/backend/questions/questions.types";
 
 const ALLOWED_SORTS: ReadonlySet<FeedSort> = new Set([
   "newest",

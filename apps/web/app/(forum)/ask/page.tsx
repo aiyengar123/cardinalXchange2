@@ -1,5 +1,5 @@
 import { AskForm } from "@/features/ask";
-import type { CreateQuestionInput } from "@/server/http/contracts";
+import type { CreateQuestionInput } from "@/backend/http/contracts";
 
 type AskPageProps = {
   searchParams: Promise<{ draft?: string }>;

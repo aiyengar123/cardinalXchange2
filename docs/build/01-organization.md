@@ -7,7 +7,7 @@ Target structure, naming conventions, and module boundaries. This file is the br
 - One obvious place for every kind of file.
 - Feature-grouped folders, not type-grouped god directories.
 - Every folder boundary has an `index.ts` barrel so imports are stable across refactors.
-- Backend (`server/`, `packages/db`) and frontend (`app/`, `features/`, `components/`, `packages/ui`) never bleed into each other.
+- Backend (`backend/`, `packages/db`) and frontend (`app/`, `frontend/features/`, `packages/ui`) never bleed into each other. Framework-free helpers live in `shared/` and may be imported from either side.
 
 ## Top-Level Tree (target)
 
@@ -30,44 +30,45 @@ apps/web/
       cxc-ai/route.ts
     layout.tsx
     globals.css
-  features/                    # feature-owned UI modules. The bulk of frontend lives here.
-    questions/
-      components/
-        question-feed.tsx
-        question-row.tsx
-        question-detail.tsx
-        answer-list.tsx
-        answer-composer.tsx
-      hooks/
-        use-questions.ts
-      types/
-        questions.types.ts
-      index.ts
-    ask/
-      components/
-        ask-form.tsx
-      hooks/
-      types/
-        ask.types.ts
-      index.ts
-    cxc-ai/
-      components/
-        chat-shell.tsx
-        message-list.tsx
-        message-composer.tsx
-        source-pill.tsx
-      hooks/
-        use-cxc-chat.ts
-      types/
-        cxc.types.ts
-      index.ts
-    shell/                     # top command bar, left rail, page chrome
-      components/
-        top-command-bar.tsx
-        topic-rail.tsx
-        page-shell.tsx
-      index.ts
-  server/                      # backend orchestration (no React)
+  frontend/                    # umbrella for all client-side modules
+    features/                  # feature-owned UI modules. The bulk of frontend lives here.
+      questions/
+        components/
+          question-feed.tsx
+          question-row.tsx
+          question-detail.tsx
+          answer-list.tsx
+          answer-composer.tsx
+        hooks/
+          use-questions.ts
+        types/
+          questions.types.ts
+        index.ts
+      ask/
+        components/
+          ask-form.tsx
+        hooks/
+        types/
+          ask.types.ts
+        index.ts
+      cxc-ai/
+        components/
+          chat-shell.tsx
+          message-list.tsx
+          message-composer.tsx
+          source-pill.tsx
+        hooks/
+          use-cxc-chat.ts
+        types/
+          cxc.types.ts
+        index.ts
+      shell/                     # top command bar, left rail, page chrome
+        components/
+          top-command-bar.tsx
+          topic-rail.tsx
+          page-shell.tsx
+        index.ts
+  backend/                     # backend orchestration (no React) — was: server/
     questions/
       questions.service.ts
       questions.queries.ts
@@ -96,26 +97,25 @@ apps/web/
         web-context.service.ts
       types/
         cxc.types.ts
+      evals/                   # CXC AI eval suites land here
+        README.md
       index.ts
     http/
       http.ts                  # HttpError, jsonError
       inputs.ts                # zod schemas / parsers
       contracts.ts             # DTOs shared with client
       index.ts
+    viewer/                    # was: lib/ — viewer stub + future auth
+      viewer.ts
+      index.ts
     index.ts
-  lib/                         # tiny app-local stubs only (e.g. getViewer)
-    viewer.ts
-    index.ts
-  middleware.ts                # Next middleware, if any
-  utils/                       # generic, pure, framework-free helpers
-    format-date.ts
-    text.ts
-    index.ts
-  data/                        # static, build-time data (topic list, etc.)
-    topics.data.ts
-    index.ts
-  scripts/                     # dev/ops scripts (not bundled)
-    check-env.ts
+  shared/                      # framework-free helpers + static data, importable from frontend or backend
+    utils/                     # generic, pure helpers
+      format-date.ts
+      text.ts
+      index.ts
+    data/                      # static, build-time data (topic list, etc.)
+      topics.data.ts
 packages/
   db/
     prisma/
@@ -171,14 +171,14 @@ docs/
   - `*.data.ts` — static literal data.
   - `*.hooks.ts` — react hooks (or `hooks/` folder with one hook per file).
 - **Components**: kebab-case file, PascalCase export. One default-exported component per file.
-- **Barrels**: every `features/*`, `server/*`, `packages/*/src` boundary has an `index.ts`. No deep imports across these boundaries from outside the folder.
+- **Barrels**: every `frontend/features/*`, `backend/*`, `packages/*/src` boundary has an `index.ts`. No deep imports across these boundaries from outside the folder.
 
 ## Shared Types Policy
 
-- Server-only types live in `apps/web/server/<feature>/<feature>.types.ts`.
-- Types crossing the wire (used by both server and client) live in `apps/web/server/http/contracts.ts` and are imported via `@/server/http`.
+- Server-only types live in `apps/web/backend/<feature>/<feature>.types.ts`.
+- Types crossing the wire (used by both server and client) live in `apps/web/backend/http/contracts.ts` and are imported via `@/backend/http`.
 - Prisma-generated types are re-exported only from `@cardinalxchange/db`.
-- `packages/ui` has its own `types/` for variant props; it must not import from `@/server` or `@cardinalxchange/db`.
+- `packages/ui` has its own `types/` for variant props; it must not import from `@/backend` or `@cardinalxchange/db`.
 
 ## Path Aliases
 
@@ -190,11 +190,11 @@ In `apps/web/tsconfig.json`:
     "paths": {
       "@/*": ["./*"],
       "@/app/*": ["./app/*"],
-      "@/features/*": ["./features/*"],
-      "@/server/*": ["./server/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/utils/*": ["./utils/*"],
-      "@/data/*": ["./data/*"]
+      "@/backend/*": ["./backend/*"],
+      "@/frontend/*": ["./frontend/*"],
+      "@/features/*": ["./frontend/features/*"],
+      "@/utils/*": ["./shared/utils/*"],
+      "@/data/*": ["./shared/data/*"]
     }
   }
 }
@@ -204,10 +204,11 @@ External packages keep their `@cardinalxchange/*` ids.
 
 ## Boundary Rules (enforced in review, not tooling)
 
-- `app/**` may import from `@/features/*`, `@/server/*`, `@cardinalxchange/ui`, `@cardinalxchange/db` (only inside route handlers).
-- `features/**` may import `@cardinalxchange/ui`, `@/utils/*`, `@/data/*`, `@/server/http` (for DTO types only). **Never** `@cardinalxchange/db`.
-- `server/**` may import `@cardinalxchange/db`, `@/utils/*`. **Never** React, Next route objects beyond `NextResponse`, or `@cardinalxchange/ui`.
-- `packages/ui/**` is client-safe. **Never** server, db, or ai imports.
+- `app/**` may import from `@/features/*`, `@/backend/*`, `@cardinalxchange/ui`, `@cardinalxchange/db` (only inside route handlers).
+- `frontend/features/**` may import `@cardinalxchange/ui`, `@/utils/*`, `@/data/*`, `@/backend/http` (for DTO types only). **Never** `@cardinalxchange/db`.
+- `backend/**` may import `@cardinalxchange/db`, `@/utils/*`. **Never** React, Next route objects beyond `NextResponse`, or `@cardinalxchange/ui`.
+- `shared/**` is framework-free. **Never** React, Next, Prisma, or `@cardinalxchange/db` imports — both `frontend/` and `backend/` may import from `shared/`.
+- `packages/ui/**` is client-safe. **Never** backend, db, or ai imports.
 
 ## Proposer / Critic / Implementer Contracts
 

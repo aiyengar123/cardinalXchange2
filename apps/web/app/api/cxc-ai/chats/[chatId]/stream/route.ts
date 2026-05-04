@@ -1,5 +1,5 @@
-import { getActiveStream } from "@/server/cxc-ai/services/stream-registry";
-import { HttpError, jsonError } from "@/server/http/http";
+import { getActiveStream } from "@/backend/cxc-ai/services/stream-registry";
+import { HttpError, jsonError } from "@/backend/http/http";
 
 type RouteContext = {
   params: Promise<{ chatId: string }>;

@@ -1,5 +1,5 @@
-import { jsonError, jsonOk } from "@/server/http/http";
-import { getQuestionDetail } from "@/server/questions/questions.service";
+import { jsonError, jsonOk } from "@/backend/http/http";
+import { getQuestionDetail } from "@/backend/questions/questions.service";
 
 type RouteContext = {
   params: Promise<{ questionId: string }>;

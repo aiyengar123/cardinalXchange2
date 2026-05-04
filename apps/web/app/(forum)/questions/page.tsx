@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { QuestionFeed } from "@/features/questions";
-import { listQuestionsForFeed } from "@/server/questions/questions.service";
-import type { FeedSort } from "@/server/questions/questions.types";
+import { listQuestionsForFeed } from "@/backend/questions/questions.service";
+import type { FeedSort } from "@/backend/questions/questions.types";
 
 type QuestionsPageProps = {
   searchParams: Promise<{

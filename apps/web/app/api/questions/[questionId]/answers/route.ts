@@ -1,6 +1,6 @@
-import { addAnswer, listAnswers } from "@/server/answers/answers.service";
-import { jsonError, jsonOk, readPayload } from "@/server/http/http";
-import { parseCreateAnswerInput } from "@/server/http/inputs";
+import { addAnswer, listAnswers } from "@/backend/answers/answers.service";
+import { jsonError, jsonOk, readPayload } from "@/backend/http/http";
+import { parseCreateAnswerInput } from "@/backend/http/inputs";
 
 type RouteContext = {
   params: Promise<{ questionId: string }>;

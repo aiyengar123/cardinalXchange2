@@ -42,7 +42,7 @@ These are visible in the canonical bottom-left panel but live in components I'm 
 
 1. **Top bar wordmark icon** — the canonical shows a small red "S" tile next to the `CardinalXchange` text. Currently `top-command-bar.tsx` renders only the wordmark.
 2. **Left rail icons** — the canonical shows a small icon (home / list / pencil / sparkle / tag) before each label in `TopicRail`. Currently labels only.
-3. **Left rail "Ask" entry** — the canonical rail has 5 entries (Home / Questions / Ask / CXC AI / Tags). Current rail is driven by `apps/web/data/topics.data.ts` and shows fewer. The "Ask Question" pill in the top bar still works as the primary affordance, but the rail entry is missing.
+3. **Left rail "Ask" entry** — the canonical rail has 5 entries (Home / Questions / Ask / CXC AI / Tags). Current rail is driven by `apps/web/shared/data/topics.data.ts` and shows fewer. The "Ask Question" pill in the top bar still works as the primary affordance, but the rail entry is missing.
 4. **Top bar search styling** — the canonical search input has no cardinal-red border (it's a plain rounded white input with a search icon). Current input has a `--color-cardinal-700` border and no icon.
 
 None of these block my page from matching its canonical panel; they're just shell-level fidelity items the user will likely want when the four parallel sessions converge.

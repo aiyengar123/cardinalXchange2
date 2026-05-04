@@ -16,7 +16,7 @@ You own the **top-left panel** of the canonical image.
 - `apps/web/app/(forum)/questions/page.tsx`
 - `apps/web/app/(forum)/questions/loading.tsx`
 - `apps/web/app/(forum)/questions/error.tsx`
-- Components under `apps/web/features/questions/components/`:
+- Components under `apps/web/frontend/features/questions/components/`:
   - `question-feed.tsx`
   - `question-row.tsx`
   - `question-detail.tsx` ← **DO NOT TOUCH** — that's task 03's territory

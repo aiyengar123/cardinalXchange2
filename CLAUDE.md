@@ -58,17 +58,17 @@ pnpm dev
 
 Boundaries are enforced by convention, not by tooling — respect them.
 
-- `apps/web/app` — Next.js App Router routes, layouts, and route handlers (`app/api/*`). Compose feature modules; do not put business logic here.
-- `apps/web/features` — feature-owned frontend modules (components, hooks, view models) once a feature outgrows a single route. New product UI belongs here, not in `apps/web/components`.
-- `apps/web/components` — app-level UI pieces for the current shell (`top-command-bar`, `question-feed`, `question-row`, `topic-rail`, `ask-question-entry`). Migrate larger feature-specific components toward `features/`.
-- `apps/web/server` — app-local backend orchestration. The pipeline is:
-  - `contracts.ts` — DTO/input types shared across server modules.
-  - `inputs.ts` + `http.ts` — payload parsing, validation, and `HttpError`/`jsonError` helpers used by route handlers.
-  - `actions.ts` — use-case entry points (`createQuestion`, `addAnswer`).
-  - `questions.ts` — read-side queries backed by `packages/db`.
-  - `cxc-ai/*` — full-page CXC AI orchestration, retrieval, AI SDK helpers, and Prisma-backed chat store.
-- `apps/web/lib` — viewer stub (`getViewer` reads `DEV_VIEWER_*` env vars). Backend logic does not belong here.
-- `packages/ui` — must stay client-safe. Never import server, DB, AI, or auth code from this package.
+- `apps/web/app` — Next.js App Router routes, layouts, and route handlers (`app/api/*`). Compose feature modules; do not put business logic here. `app/api/**/route.ts` is the HTTP edge of `backend/`; route handlers should be 10-line files that parse → call a service → return a DTO.
+- `apps/web/frontend/features` — feature-owned frontend modules (components, hooks, view models) once a feature outgrows a single route. New product UI belongs here. Imported via `@/features/*`.
+- `apps/web/backend` — app-local backend orchestration (no React). The pipeline is:
+  - `http/contracts.ts` — DTO/input types shared across backend modules.
+  - `http/inputs.ts` + `http/http.ts` — payload parsing, validation, and `HttpError`/`jsonError` helpers used by route handlers.
+  - `<feature>/<feature>.service.ts` — use-case entry points (`createQuestion`, `addAnswer`).
+  - `<feature>/<feature>.queries.ts` / `.mutations.ts` — read/write functions backed by `packages/db`.
+  - `cxc-ai/*` — full-page CXC AI orchestration, retrieval, AI SDK helpers, and Prisma-backed chat store. Eval suites land under `backend/cxc-ai/evals/`.
+  - `viewer/` — viewer stub (`getViewer` reads `DEV_VIEWER_*` env vars). Future auth wiring lands here.
+- `apps/web/shared` — peer of `frontend/` and `backend/`. Holds framework-free helpers (`shared/utils/`) and static literal data (`shared/data/`). Importable from both sides via `@/utils/*` and `@/data/*`.
+- `packages/ui` — must stay client-safe. Never import backend, DB, AI, or auth code from this package.
 
 Path alias: `@/*` resolves to `apps/web/*` (see `apps/web/tsconfig.json`). Use it instead of long relative imports inside the web app.
 

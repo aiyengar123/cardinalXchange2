@@ -1,5 +1,5 @@
-import { getAiChatSnapshot } from "@/server/cxc-ai/services/chat.service";
-import { jsonError, jsonOk } from "@/server/http/http";
+import { getAiChatSnapshot } from "@/backend/cxc-ai/services/chat.service";
+import { jsonError, jsonOk } from "@/backend/http/http";
 
 type RouteContext = {
   params: Promise<{ chatId: string }>;

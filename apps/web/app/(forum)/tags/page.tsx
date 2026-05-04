@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { listTagsForIndex } from "@/server/tags";
+import { listTagsForIndex } from "@/backend/tags";
 
 export const dynamic = "force-dynamic";
 

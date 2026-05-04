@@ -17,16 +17,16 @@ You own the **bottom-right panel** of the canonical image, AND making the AI SDK
 - `apps/web/app/cxc-ai/layout.tsx`
 - `apps/web/app/cxc-ai/loading.tsx`
 - `apps/web/app/cxc-ai/error.tsx`
-- Components under `apps/web/features/cxc-ai/components/`:
+- Components under `apps/web/frontend/features/cxc-ai/components/`:
   - `chat-shell.tsx`
   - `message-list.tsx`
   - `message-composer.tsx`
   - `source-pill.tsx`
   - `chat-history-rail.tsx`
-- Hook: `apps/web/features/cxc-ai/hooks/use-cxc-chat.ts`
+- Hook: `apps/web/frontend/features/cxc-ai/hooks/use-cxc-chat.ts`
 - API route: `apps/web/app/api/cxc-ai/route.ts` (you may edit; this is part of "make the AI SDK actually real")
-- Server services: `apps/web/server/cxc-ai/services/chat.service.ts`, `retrieval.service.ts`, `web-context.service.ts` (you may edit)
-- Agents and prompts: `apps/web/server/cxc-ai/agents/` (you may edit)
+- Server services: `apps/web/backend/cxc-ai/services/chat.service.ts`, `retrieval.service.ts`, `web-context.service.ts` (you may edit)
+- Agents and prompts: `apps/web/backend/cxc-ai/agents/` (you may edit)
 
 DO NOT touch other features' components, `packages/db`, `packages/ui`, or the forum pages.
 
@@ -70,7 +70,7 @@ Compare visual layout to the image panel. Likely drift:
 
 ## Backend contract
 
-- DTOs: `CxcMessageDto`, `CxcSourceDto`, `AskCommunityDraft`, `AiChatSnapshot`, `AiChatSession` from `@/server/http/contracts`
+- DTOs: `CxcMessageDto`, `CxcSourceDto`, `AskCommunityDraft`, `AiChatSnapshot`, `AiChatSession` from `@/backend/http/contracts`
 - `useCxcChat` (in `hooks/use-cxc-chat.ts`) wraps Vercel AI SDK's `useChat`
 - Stream endpoint: `POST /api/cxc-ai`
 - Resume snapshot: `GET /api/cxc-ai/chats/[chatId]`

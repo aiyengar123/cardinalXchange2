@@ -34,7 +34,7 @@ Find your panel. Compare it pixel-for-pixel to your current page in the running 
 1. The image (use Read tool, path above)
 2. `docs/build/03-frontend.md` — frontend brief, panel-by-panel
 3. `docs/build/04-design.md` — design system + tokens (Stanford cardinal `#8C1515`, square-default but rounded-md allowed on inputs/buttons/cards/rail-items/filters/search)
-4. `docs/build/01-organization.md` — boundary rules (frontend imports DTOs only from `@/server/http/contracts`; never `@cardinalxchange/db`)
+4. `docs/build/01-organization.md` — boundary rules (frontend imports DTOs only from `@/backend/http/contracts`; never `@cardinalxchange/db`)
 5. `docs/build/proposals/wave5-fixes.md` — most recent fix pass; understand what's already there
 6. `CLAUDE.md` — out-of-scope (no auth, votes, courses, reputation, notifications, admin, image upload, seed data)
 
@@ -43,12 +43,12 @@ Find your panel. Compare it pixel-for-pixel to your current page in the running 
 You own a specific page. Stay in your lane:
 
 - Page route file under `apps/web/app/(forum)/...` or `apps/web/app/cxc-ai/...`
-- Feature components under `apps/web/features/<feature>/components/...` that this page uses
+- Feature components under `apps/web/frontend/features/<feature>/components/...` that this page uses
 - Local `loading.tsx`, `error.tsx`, `not-found.tsx` for your route
 
 Do NOT edit:
 - `packages/ui/**` (design system primitives — these are shared; ask the user if a primitive is wrong)
-- `apps/web/server/**` or `apps/web/app/api/**` (backend — flag any contract issue, don't fix it)
+- `apps/web/backend/**` or `apps/web/app/api/**` (backend — flag any contract issue, don't fix it)
 - `packages/db/**`
 - The shared `PageShell`, `TopCommandBar`, `TopicRail`, `SideRail`, `ChatHistoryRail` (shared shell — ask the user)
 - Other pages or other features' components

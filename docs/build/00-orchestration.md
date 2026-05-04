@@ -34,11 +34,11 @@ Reads proposal + critique. Reconciles them into a final tree, writes the empty f
 
 ### D. Backend Agent (`02-backend.md`)
 
-Owns `packages/db` and `apps/web/server`. Implements Prisma models, migrations, route handlers, server services, and AI orchestration (prompts, retrieval, persistence). Stops at the route handler boundary; does not touch React components.
+Owns `packages/db` and `apps/web/backend`. Implements Prisma models, migrations, route handlers, server services, and AI orchestration (prompts, retrieval, persistence). Stops at the route handler boundary; does not touch React components.
 
 ### E. Frontend Agent (`03-frontend.md`)
 
-Owns `apps/web/app` route tree and `apps/web/features`. Implements the four panels exactly as in the image, with panel 3 supporting multiple answers. Consumes the design tokens from `04-design.md`. Calls backend through route handlers / server actions only.
+Owns `apps/web/app` route tree and `apps/web/frontend/features`. Implements the four panels exactly as in the image, with panel 3 supporting multiple answers. Consumes the design tokens from `04-design.md`. Calls backend through route handlers / server actions only.
 
 ### F. Design-System Agent (`04-design.md`)
 

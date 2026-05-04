@@ -1,6 +1,6 @@
 # 03 · Frontend
 
-Brief for the **Frontend Agent**. Owns `apps/web/app` (route tree) and `apps/web/features`. Calls backend only through route handlers / server actions and uses tokens + primitives from `04-design.md` and `@cardinalxchange/ui`.
+Brief for the **Frontend Agent**. Owns `apps/web/app` (route tree) and `apps/web/frontend/features`. Calls backend only through route handlers / server actions and uses tokens + primitives from `04-design.md` and `@cardinalxchange/ui`.
 
 ## Image — re-open before each panel
 
@@ -98,16 +98,16 @@ Behavior:
 
 ```
 app/<route>/page.tsx          (server component)
-  └─ calls @/server/<feature>.service
+  └─ calls @/backend/<feature>.service
         └─ calls @cardinalxchange/db query helpers
 
 app/api/<route>/route.ts      (route handler)
-  └─ parse @/server/http/inputs
-  └─ call @/server/<feature>.service
+  └─ parse @/backend/http/inputs
+  └─ call @/backend/<feature>.service
   └─ jsonOk / jsonError
 ```
 
-Frontend never imports `@cardinalxchange/db`. Frontend imports DTO types from `@/server/http/contracts`.
+Frontend never imports `@cardinalxchange/db`. Frontend imports DTO types from `@/backend/http/contracts`.
 
 ## Loading & Error States
 

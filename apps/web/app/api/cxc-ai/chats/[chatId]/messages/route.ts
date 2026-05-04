@@ -1,8 +1,8 @@
 import type { UIMessage } from "ai";
 
-import { replaceAiChatMessages } from "@/server/cxc-ai/services/chat.service";
-import { jsonError, jsonOk, readPayload } from "@/server/http/http";
-import { parseCxcChatMessagesInput } from "@/server/http/inputs";
+import { replaceAiChatMessages } from "@/backend/cxc-ai/services/chat.service";
+import { jsonError, jsonOk, readPayload } from "@/backend/http/http";
+import { parseCxcChatMessagesInput } from "@/backend/http/inputs";
 
 type RouteContext = {
   params: Promise<{ chatId: string }>;

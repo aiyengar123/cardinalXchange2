@@ -1,6 +1,6 @@
 # 02 · Backend
 
-Brief for the **Backend Agent**. Owns `packages/db` and `apps/web/server`. Stops at the route-handler boundary.
+Brief for the **Backend Agent**. Owns `packages/db` and `apps/web/backend`. Stops at the route-handler boundary.
 
 ## Image
 
@@ -40,14 +40,14 @@ Indexes:
 
 `packages/db` exposes only async functions and types. No HTTP, no zod, no React.
 
-## Server Layer (`apps/web/server`)
+## Server Layer (`apps/web/backend`)
 
-### `server/http`
+### `backend/http`
 - `http.ts` — `HttpError`, `jsonError`, `jsonOk` helpers.
 - `inputs.ts` — zod schemas: `createQuestionInput`, `createAnswerInput`, `cxcChatInput`. Each exports a parser that throws `HttpError` on failure.
 - `contracts.ts` — wire DTOs: `QuestionRowDto`, `QuestionDetailDto`, `AnswerDto`, `CxcMessageDto`, `CxcSourceDto`. These are the shared types client code is allowed to import.
 
-### `server/questions`
+### `backend/questions`
 - `questions.service.ts`
   - `listQuestionsForFeed({ tag?, sort })` → `QuestionRowDto[]`.
   - `getQuestionDetail(id)` → `QuestionDetailDto` (includes answer list).
@@ -55,20 +55,20 @@ Indexes:
 - `questions.queries.ts` thin wrappers over `@cardinalxchange/db`.
 - `questions.mutations.ts` write paths.
 
-### `server/answers`
+### `backend/answers`
 - `answers.service.ts`
   - `addAnswer(questionId, input, viewer)` → `AnswerDto`.
   - `listAnswers(questionId)` → `AnswerDto[]` (already nested in question detail; keep this for future direct fetches).
 
-### `server/search`
+### `backend/search`
 - `search.service.ts` — Postgres-backed search; rank title/tag matches above body matches; tag filter.
 
-### `server/cxc-ai`
+### `backend/cxc-ai`
 
 Strict three-folder split:
 
 ```
-server/cxc-ai/
+backend/cxc-ai/
   agents/
     prompts/
       system.prompt.ts          # voice + scope + safety
@@ -79,7 +79,8 @@ server/cxc-ai/
     retrieval.service.ts        # public Q&A only, capped, source-labeled
     web-context.service.ts      # opt-in WEB_CONTEXT_ENDPOINT; no-op if unset
   types/
-    cxc.types.ts                # internal types; wire types live in server/http/contracts.ts
+    cxc.types.ts                # internal types; wire types live in backend/http/contracts.ts
+  evals/                        # CXC AI eval suites land here
   index.ts
 ```
 

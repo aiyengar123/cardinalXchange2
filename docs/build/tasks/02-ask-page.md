@@ -15,7 +15,7 @@ You own the **top-right panel** of the canonical image.
 - `apps/web/app/(forum)/ask/page.tsx`
 - `apps/web/app/(forum)/ask/loading.tsx`
 - `apps/web/app/(forum)/ask/error.tsx`
-- `apps/web/features/ask/components/` — most importantly `ask-form.tsx`
+- `apps/web/frontend/features/ask/components/` — most importantly `ask-form.tsx`
 
 ## What the image shows (top-right panel)
 
@@ -41,7 +41,7 @@ The page exists but the user feels it has drifted from the image. Open `http://l
 
 ## Backend contract (don't change, just consume)
 
-- DTOs: `CreateQuestionInput` from `@/server/http/contracts`
+- DTOs: `CreateQuestionInput` from `@/backend/http/contracts`
 - Submit: `POST /api/questions` with JSON body matching `CreateQuestionInput`
 - On success: navigate to `/questions/[id]` using the returned id
 

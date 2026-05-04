@@ -15,7 +15,7 @@ You own the **bottom-left panel** of the canonical image.
 - `apps/web/app/(forum)/questions/[questionId]/page.tsx`
 - `apps/web/app/(forum)/questions/[questionId]/loading.tsx`
 - `apps/web/app/(forum)/questions/[questionId]/error.tsx`
-- Components under `apps/web/features/questions/components/`:
+- Components under `apps/web/frontend/features/questions/components/`:
   - `question-detail.tsx`
   - `answer-list.tsx`
   - `answer-composer.tsx`
@@ -45,7 +45,7 @@ Likely drift:
 
 ## Backend contract (don't change, just consume)
 
-- Server action: `getQuestionDetail(id)` from `@/server/questions` returning `QuestionDetailDto` with `answersList: AnswerDto[]`
+- Server action: `getQuestionDetail(id)` from `@/backend/questions` returning `QuestionDetailDto` with `answersList: AnswerDto[]`
 - Submit answer: `POST /api/questions/[id]/answers` with `CreateAnswerInput`
 - On success: `router.refresh()` or update local state with the new answer
 

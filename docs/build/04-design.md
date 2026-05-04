@@ -175,7 +175,7 @@ Primitives never render fonts that aren't in the typography tokens, never accept
 ## Component Library Boundaries
 
 - `packages/ui` is **client-safe**. No server, db, ai, auth imports — ever.
-- Feature-specific composites (e.g., `QuestionRow`) live in `apps/web/features/<feature>/components`, not in `packages/ui`.
+- Feature-specific composites (e.g., `QuestionRow`) live in `apps/web/frontend/features/<feature>/components`, not in `packages/ui`.
 - If three features need the same primitive, lift it into `packages/ui`. Two does not yet justify a lift.
 
 ## Dark Mode

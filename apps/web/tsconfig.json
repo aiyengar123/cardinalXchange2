@@ -4,11 +4,11 @@
     "paths": {
       "@/*": ["./*"],
       "@/app/*": ["./app/*"],
-      "@/features/*": ["./features/*"],
-      "@/server/*": ["./server/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/utils/*": ["./utils/*"],
-      "@/data/*": ["./data/*"]
+      "@/backend/*": ["./backend/*"],
+      "@/frontend/*": ["./frontend/*"],
+      "@/features/*": ["./frontend/features/*"],
+      "@/utils/*": ["./shared/utils/*"],
+      "@/data/*": ["./shared/data/*"]
     }
   },
   "include": [

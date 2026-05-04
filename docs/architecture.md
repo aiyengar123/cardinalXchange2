@@ -38,7 +38,7 @@ The MVP should keep the system small and database-first.
 Browser
   -> Next.js App Router pages and components
   -> Next.js route handlers / server actions
-  -> app-local backend services in apps/web/server
+  -> app-local backend services in apps/web/backend
   -> packages/db
   -> Prisma client
   -> Supabase Postgres / local Postgres
@@ -46,7 +46,7 @@ Browser
 Optional CXC AI
   -> full-page routes at /cxc-ai and /cxc-ai/[chatId]
   -> server-side route handler in apps/web/app
-  -> backend orchestration in apps/web/server
+  -> backend orchestration in apps/web/backend
   -> public Question and Answer retrieval
   -> optional bounded web context
   -> source-labeled private chat response
@@ -59,20 +59,21 @@ Deployment should use Supabase as the managed Postgres provider. Local developme
 
 ## Workspaces And Boundaries
 
-- `apps/web/app`: Next.js App Router route tree. Keep layouts, pages, loading/error states, and route handlers here.
-- `apps/web/features`: Product-facing frontend modules grouped by feature. Components, hooks, view models, and frontend-only state belong here when they outgrow a single route.
-- `apps/web/server`: App-local backend orchestration. Route handlers and server actions should call into this layer for question, answer, tag, search, and optional CXC AI use cases.
+- `apps/web/app`: Next.js App Router route tree. Keep layouts, pages, loading/error states, and route handlers here. `app/api/**/route.ts` is the HTTP edge of `backend/`.
+- `apps/web/frontend/features`: Product-facing frontend modules grouped by feature. Components, hooks, view models, and frontend-only state belong here when they outgrow a single route.
+- `apps/web/backend`: App-local backend orchestration. Route handlers and server actions should call into this layer for question, answer, tag, search, and optional CXC AI use cases. The viewer stub lives at `backend/viewer/`; future auth wiring lands there. CXC AI eval suites live at `backend/cxc-ai/evals/`.
+- `apps/web/shared`: Framework-free helpers (`shared/utils/`) and static literal data (`shared/data/`). Importable from both `frontend/` and `backend/`.
 - `packages/db`: Prisma schema, migrations, generated client, seed workflow, and Postgres query helpers. This is the only shared package that should know about Prisma.
 - `packages/ui`: Shared React primitives and styling helpers. This package must stay client-safe and must not import database, AI, or auth code.
 - `packages/config`: Shared TypeScript configuration used by apps and packages.
 
-Current implementation note: old prototype mock data and course/vote UI have been removed from the active app. New frontend modules should move toward `apps/web/features`; backend modules should not be added to `apps/web/lib`.
+Current implementation note: old prototype mock data and course/vote UI have been removed from the active app. New frontend modules belong under `apps/web/frontend/features`; backend modules under `apps/web/backend`.
 
 `packages/ui` is the shared design/component index for the MVP. It exports `Button`, `Badge`, `Surface`, `cn`, and a static `designSystem` object containing the color, font, radius, and primitive variant names mirrored from `apps/web/app/globals.css`. Keep this package limited to client-safe React primitives and static tokens.
 
 ## Backend Shape
 
-Keep product orchestration inside `apps/web/server` and Prisma/Postgres ownership inside `packages/db`. This keeps the repo a modular monolith: one deployable Next.js app, one shared database package, and no separate backend service until the product has a concrete reason for one.
+Keep product orchestration inside `apps/web/backend` and Prisma/Postgres ownership inside `packages/db`. This keeps the repo a modular monolith: one deployable Next.js app, one shared database package, and no separate backend service until the product has a concrete reason for one.
 
 Current target structure:
 
@@ -90,17 +91,23 @@ apps/web/
       questions/[questionId]/answers/route.ts
       search/route.ts
       cxc-ai/route.ts
-  features/
+  frontend/
+    features/
+      questions/
+      search/
+      cxc-ai/
+  backend/
     questions/
+    answers/
     search/
-    ai/
-  server/
-    questions.ts
-    answers.ts
-    search.ts
+    viewer/
     cxc-ai/
-      chat.ts
-      ask-the-community.ts
+      agents/
+      services/
+      evals/
+  shared/
+    utils/
+    data/
 packages/db/
     prisma/
       schema.prisma
@@ -110,7 +117,7 @@ packages/db/
     index.ts
 ```
 
-`apps/web/server` may compose use cases and enforce app behavior. `packages/db` should stay focused on database access and schema-adjacent helpers; it should not import React, Next.js route objects, or browser code.
+`apps/web/backend` may compose use cases and enforce app behavior. `packages/db` should stay focused on database access and schema-adjacent helpers; it should not import React, Next.js route objects, or browser code.
 
 ## Data Model Direction
 
@@ -263,7 +270,7 @@ Production migrations need an explicit workflow before launch. Do not rely on re
 ## Guardrails
 
 - Keep server-only code out of `packages/ui`.
-- Keep backend routes in `apps/web/app/api` and use `apps/web/server` for orchestration.
+- Keep backend routes in `apps/web/app/api` and use `apps/web/backend` for orchestration.
 - Keep Prisma/Postgres details in `packages/db`.
 - Use Prisma and Postgres as the initial persistence/search layer.
 - Do not add auth-first architecture yet; the current MVP has no login screen.
