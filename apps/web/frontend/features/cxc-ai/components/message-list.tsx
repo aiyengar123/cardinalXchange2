@@ -8,7 +8,11 @@ import { CitedText } from "@/features/cxc-ai/components/cited-text";
 import { RelatedQuestions } from "@/features/cxc-ai/components/related-questions";
 import ToolChain from "@/features/cxc-ai/components/tool-chain";
 import { citedSourceIndices } from "@/backend/cxc-ai/services/citation-extraction.service";
-import type { CxcMessageDto, CxcSourceDto } from "@/backend/http/contracts";
+import type {
+  AskCommunityDraft,
+  CxcMessageDto,
+  CxcSourceDto,
+} from "@/backend/http/contracts";
 
 type MessageListProps = {
   messages: CxcMessageDto[];
@@ -48,7 +52,7 @@ function MessageBubble({
     return (
       <article className="flex justify-end" data-role="user">
         <div className="max-w-[min(38rem,85%)] rounded-md bg-[var(--color-cardinal-500)] px-4 py-2.5 text-sm leading-relaxed text-white">
-          <p className="whitespace-pre-wrap break-words">{text}</p>
+          <p className="break-words whitespace-pre-wrap">{text}</p>
         </div>
       </article>
     );
@@ -68,15 +72,11 @@ function MessageBubble({
 
       {sources.length > 0 && hasInlineCitations ? (
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
+          <span className="text-[11px] font-semibold tracking-wide text-[var(--color-ink-500)] uppercase">
             Sources
           </span>
           {sources.map((source, index) => (
-            <CitationBubble
-              index={index + 1}
-              key={source.id}
-              source={source}
-            />
+            <CitationBubble index={index + 1} key={source.id} source={source} />
           ))}
         </div>
       ) : null}
@@ -109,11 +109,7 @@ function MessageBubble({
   );
 }
 
-function AskCommunityDraftCard({
-  draft,
-}: {
-  draft: { title: string; body: string; tags: string[] };
-}) {
+function AskCommunityDraftCard({ draft }: { draft: AskCommunityDraft }) {
   const encoded = useMemo(
     () => encodeURIComponent(JSON.stringify(draft)),
     [draft],
@@ -121,20 +117,20 @@ function AskCommunityDraftCard({
 
   return (
     <aside className="rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] p-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
+      <p className="text-[11px] font-semibold tracking-wide text-[var(--color-ink-500)] uppercase">
         Ask the Community draft
       </p>
       <p className="mt-1 text-sm font-semibold text-[var(--color-ink-900)]">
         {draft.title}
       </p>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-ink-700)]">
+      <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-[var(--color-ink-700)]">
         {draft.body}
       </p>
       {draft.tags.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {draft.tags.map((tag) => (
             <span
-              className="inline-flex items-center rounded-sm border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-2 py-0.5 text-xs font-medium leading-none text-[var(--color-ink-700)]"
+              className="inline-flex items-center rounded-sm border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-2 py-0.5 text-xs leading-none font-medium text-[var(--color-ink-700)]"
               key={tag}
             >
               {tag}
@@ -144,7 +140,7 @@ function AskCommunityDraftCard({
       ) : null}
       <div className="mt-3 flex justify-end">
         <Link
-          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-3 text-xs font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-3 text-xs font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 focus-visible:outline-none"
           href={`/ask?draft=${encoded}`}
         >
           Use this draft
@@ -182,8 +178,7 @@ function extractSources(message: CxcMessageDto): CxcSourceDto[] {
       kind: kindForLabel(label, meta.kind),
       label,
       title,
-      snippet:
-        meta.snippet ?? (candidate.snippet as string | undefined) ?? "",
+      snippet: meta.snippet ?? (candidate.snippet as string | undefined) ?? "",
       questionId: (candidate.questionId as string | undefined) ?? "",
       answerId: candidate.answerId as string | undefined,
       url,
@@ -220,10 +215,8 @@ function extractToolParts(
   return result;
 }
 
-function extractDrafts(
-  message: CxcMessageDto,
-): { title: string; body: string; tags: string[] }[] {
-  const drafts: { title: string; body: string; tags: string[] }[] = [];
+function extractDrafts(message: CxcMessageDto): AskCommunityDraft[] {
+  const drafts: AskCommunityDraft[] = [];
   for (const part of message.parts) {
     if (!part.type.startsWith("tool-")) continue;
     if (!part.type.includes("ask_community_draft")) continue;
@@ -258,10 +251,7 @@ function splitLabelTitle(label: string): { label: string; title: string } {
   return { label: "Source", title: label };
 }
 
-function kindForLabel(
-  label: string,
-  metaKind?: string,
-): CxcSourceDto["kind"] {
+function kindForLabel(label: string, metaKind?: string): CxcSourceDto["kind"] {
   if (metaKind === "question" || metaKind === "answer" || metaKind === "web") {
     return metaKind;
   }

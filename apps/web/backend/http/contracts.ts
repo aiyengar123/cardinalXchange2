@@ -1,4 +1,7 @@
-import type { TagWithCountRecord } from "@cardinalxchange/db";
+import type {
+  AiChatSessionRecord,
+  TagWithCountRecord,
+} from "@cardinalxchange/db";
 import type { UIMessage } from "ai";
 
 /**
@@ -77,13 +80,18 @@ export type CreateAnswerInput = {
 
 export type AiChatSourceKind = "question" | "answer" | "web";
 
-export type AiChatSession = {
-  id: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-  messageCount: number;
-};
+/**
+ * Wire shape for a CXC AI session row. Picks the persisted identity columns
+ * from the Prisma payload, swaps the nullable record `title` for the
+ * UI-facing string (the service supplies a fallback), and replaces the
+ * embedded `messages` array with a precomputed `messageCount`.
+ */
+export type AiChatSession = Serialized<
+  Pick<AiChatSessionRecord, "id" | "createdAt" | "updatedAt"> & {
+    title: string;
+    messageCount: number;
+  }
+>;
 
 export type AiChatMessage = UIMessage;
 
