@@ -6,6 +6,7 @@ import {
   parseCreateQuestionInput,
   parseCxcChatInput,
   parseSearchInput,
+  parseUpdateUserProfileInput,
 } from "../inputs";
 
 describe("parseCreateQuestionInput", () => {
@@ -220,6 +221,45 @@ describe("parseSearchInput", () => {
     } catch (error) {
       expect(error).toBeInstanceOf(HttpError);
       expect((error as HttpError).code).toBe("missing_search_query");
+    }
+  });
+});
+
+describe("parseUpdateUserProfileInput", () => {
+  it("accepts an absent displayName (no-op patch)", () => {
+    const result = parseUpdateUserProfileInput({});
+    expect(result.displayName).toBeUndefined();
+  });
+
+  it("trims and returns a non-empty displayName", () => {
+    const result = parseUpdateUserProfileInput({ displayName: "  Alice  " });
+    expect(result.displayName).toBe("Alice");
+  });
+
+  it("accepts null to clear the displayName", () => {
+    const result = parseUpdateUserProfileInput({ displayName: null });
+    expect(result.displayName).toBeNull();
+  });
+
+  it("rejects displayNames longer than 80 characters", () => {
+    const long = "a".repeat(81);
+    try {
+      parseUpdateUserProfileInput({ displayName: long });
+      throw new Error("expected parseUpdateUserProfileInput to throw");
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpError);
+      expect((error as HttpError).code).toBe("invalid_user_profile_input");
+      expect((error as HttpError).status).toBe(400);
+    }
+  });
+
+  it("rejects non-string displayName values", () => {
+    try {
+      parseUpdateUserProfileInput({ displayName: 42 });
+      throw new Error("expected parseUpdateUserProfileInput to throw");
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpError);
+      expect((error as HttpError).code).toBe("invalid_user_profile_input");
     }
   });
 });
