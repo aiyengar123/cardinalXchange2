@@ -4,41 +4,18 @@
  * Tokens, primitives, and the `cn` className helper. This package is
  * client-safe — it must never import from `@cardinalxchange/db`, `@/backend/*`,
  * or any AI/auth code.
+ *
+ * Token usage note: the runtime style source is `apps/web/app/globals.css`
+ * (CSS variables, mirrored into Tailwind via `@theme inline`). The TS
+ * `colors` token is exported so a small number of server contexts can
+ * read color values at build time (e.g. `viewport.themeColor` in the
+ * Next root layout). Other token scales (spacing, radius, typography)
+ * live only as CSS vars — adding TS mirrors when there's no consumer
+ * is dead code.
  */
 
-export {
-  colors,
-  radius,
-  spacing,
-  typography,
-} from "./tokens";
-export type {
-  ColorTokens,
-  RadiusTokens,
-  SpacingTokens,
-  TypographyTokens,
-} from "./tokens";
-
-import {
-  colors as colorsTokens,
-  radius as radiusTokens,
-  spacing as spacingTokens,
-  typography as typographyTokens,
-} from "./tokens";
-
-/**
- * Static, JSON-serialisable bundle of every token. Other workspaces may read
- * it for documentation/preview, but it is **not** the runtime style source —
- * `apps/web/app/globals.css` + Tailwind config own that.
- */
-export const designSystem = {
-  colors: colorsTokens,
-  radius: radiusTokens,
-  spacing: spacingTokens,
-  typography: typographyTokens,
-} as const;
-
-export type DesignSystem = typeof designSystem;
+export { colors } from "./tokens";
+export type { ColorTokens } from "./tokens";
 
 export * from "./primitives";
 
