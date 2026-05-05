@@ -32,6 +32,10 @@ export const colors = {
     danger: "#b00020",
     success: "#0a6e3d",
   },
+  link: {
+    default: "#0b66c2",
+    hover: "#084a8e",
+  },
 } as const;
 
 export type ColorTokens = typeof colors;

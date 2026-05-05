@@ -154,7 +154,10 @@ function parseBlocks(source: string): Block[] {
   return blocks;
 }
 
-function isTableHeaderCandidate(headerLine: string, dividerLine: string): boolean {
+function isTableHeaderCandidate(
+  headerLine: string,
+  dividerLine: string,
+): boolean {
   if (!headerLine.includes("|")) return false;
   if (!TABLE_DIVIDER_LINE.test(dividerLine)) return false;
   const headerCells = splitTableRow(headerLine);
@@ -216,9 +219,7 @@ function renderBlock(block: Block, index: number): ReactNode {
     );
   }
   if (block.kind === "code") {
-    const codeClass = block.language
-      ? `language-${block.language}`
-      : undefined;
+    const codeClass = block.language ? `language-${block.language}` : undefined;
     return (
       <pre
         key={index}
@@ -233,7 +234,7 @@ function renderBlock(block: Block, index: number): ReactNode {
     return (
       <blockquote
         key={index}
-        className="my-3 whitespace-pre-line border-l-2 border-[var(--color-cardinal-500)] pl-4 italic text-[var(--color-ink-700)]"
+        className="my-3 border-l-2 border-[var(--color-cardinal-500)] pl-4 whitespace-pre-line text-[var(--color-ink-700)] italic"
       >
         {renderInline(text)}
       </blockquote>
@@ -260,10 +261,7 @@ function renderBlock(block: Block, index: number): ReactNode {
         </thead>
         <tbody>
           {block.rows.map((row, rowIndex) => (
-            <tr
-              key={rowIndex}
-              className="even:bg-[var(--color-surface-sunk)]"
-            >
+            <tr key={rowIndex} className="even:bg-[var(--color-surface-sunk)]">
               {block.header.map((_, cellIndex) => (
                 <td
                   key={cellIndex}
@@ -376,7 +374,7 @@ function renderInline(input: string): ReactNode {
               href={token.href}
               rel="noreferrer noopener"
               target="_blank"
-              className="text-[#0b66c2] underline decoration-[#0b66c2]/40 underline-offset-2 transition-colors hover:text-[#084a8e] hover:decoration-[#084a8e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+              className="text-[var(--color-link)] underline decoration-[var(--color-link)]/40 underline-offset-2 transition-colors hover:text-[var(--color-link-hover)] hover:decoration-[var(--color-link-hover)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
             >
               {token.text}
             </a>
@@ -384,7 +382,10 @@ function renderInline(input: string): ReactNode {
         }
         if (token.type === "bold") {
           return (
-            <strong key={i} className="font-semibold text-[var(--color-ink-900)]">
+            <strong
+              key={i}
+              className="font-semibold text-[var(--color-ink-900)]"
+            >
               {token.text}
             </strong>
           );

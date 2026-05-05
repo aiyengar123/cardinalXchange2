@@ -168,7 +168,7 @@ export function AnswerComposer({ questionId }: AnswerComposerProps) {
   return (
     <section
       aria-labelledby="answer-composer-heading"
-      className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-6 pb-5 pt-5"
+      className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-6 pt-5 pb-5"
     >
       <h2
         className="border-b border-[var(--color-border-default)] pb-2 text-lg font-semibold text-[var(--color-ink-900)]"
@@ -181,8 +181,8 @@ export function AnswerComposer({ questionId }: AnswerComposerProps) {
         <div
           className={`overflow-hidden rounded-md border bg-[var(--color-surface-base)] ${
             error
-              ? "border-[var(--color-state-danger)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-state-danger)]"
-              : "border-[var(--color-border-default)] focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-border-focus)]"
+              ? "border-[var(--color-state-danger)] focus-within:ring-2 focus-within:ring-[var(--color-state-danger)] focus-within:ring-inset"
+              : "border-[var(--color-border-default)] focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-[var(--color-border-focus)] focus-within:ring-inset"
           }`}
         >
           <div
@@ -262,7 +262,7 @@ export function AnswerComposer({ questionId }: AnswerComposerProps) {
             {isEmpty ? (
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-3 text-sm text-[var(--color-ink-500)]"
+                className="pointer-events-none absolute top-3 left-3 text-sm text-[var(--color-ink-500)]"
               >
                 Write your answer...
               </span>
@@ -272,7 +272,7 @@ export function AnswerComposer({ questionId }: AnswerComposerProps) {
               aria-invalid={error ? "true" : undefined}
               aria-label="Answer"
               aria-multiline="true"
-              className="block min-h-44 w-full bg-transparent px-3 py-3 text-sm leading-relaxed text-[var(--color-ink-900)] focus:outline-none [&_a]:text-[#0b66c2] [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded-sm [&_code]:border [&_code]:border-[var(--color-border-default)] [&_code]:bg-[var(--color-ink-50)] [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em] [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-1"
+              className="block min-h-44 w-full bg-transparent px-3 py-3 text-sm leading-relaxed text-[var(--color-ink-900)] focus:outline-none [&_a]:text-[var(--color-link)] [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded-sm [&_code]:border [&_code]:border-[var(--color-border-default)] [&_code]:bg-[var(--color-ink-50)] [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em] [&_li]:my-1 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
               contentEditable={!submitting}
               data-placeholder="Write your answer..."
               id={editorId}
@@ -297,7 +297,7 @@ export function AnswerComposer({ questionId }: AnswerComposerProps) {
 
         <div className="mt-4">
           <button
-            className="inline-flex h-10 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-5 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-5 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             disabled={submitting}
             type="submit"
           >
@@ -325,7 +325,7 @@ function ToolbarButton({
   return (
     <button
       aria-label={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--color-ink-700)] transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] hover:text-[var(--color-ink-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--color-ink-700)] transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] hover:text-[var(--color-ink-900)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
       disabled={disabled}
       onClick={onClick}
       onMouseDown={onMouseDown}
@@ -476,7 +476,10 @@ async function safeJson(response: Response): Promise<unknown> {
  * normalizes <div>/<p> as paragraph breaks and <br> as soft newlines.
  */
 function htmlToMarkdown(root: HTMLElement): string {
-  return walk(root).replace(/\n{3,}/g, "\n\n").replace(/[ \t]+\n/g, "\n").trim();
+  return walk(root)
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .trim();
 }
 
 function walk(node: Node): string {

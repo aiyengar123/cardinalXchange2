@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { colors } from "@cardinalxchange/ui";
 
 import { mono, sans } from "./fonts";
 import "./globals.css";
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#c8102e",
+  themeColor: colors.cardinal[500],
 };
 
 export default function RootLayout({
@@ -19,10 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${sans.variable} ${mono.variable}`}
-    >
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );

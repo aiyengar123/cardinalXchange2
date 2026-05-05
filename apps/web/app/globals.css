@@ -37,6 +37,10 @@
   --color-state-danger: #b00020;
   --color-state-success: #0a6e3d;
 
+  /* color · link — used by markdown anchors and rich-text content */
+  --color-link: #0b66c2;
+  --color-link-hover: #084a8e;
+
   /* radius */
   --radius-none: 0px;
   --radius-hairline: 2px;
@@ -124,6 +128,12 @@
   --color-border-default: var(--color-border-default);
   --color-border-strong: var(--color-border-strong);
   --color-border-focus: var(--color-border-focus);
+
+  --color-state-danger: var(--color-state-danger);
+  --color-state-success: var(--color-state-success);
+
+  --color-link: var(--color-link);
+  --color-link-hover: var(--color-link-hover);
 
   --radius-none: var(--radius-none);
   --radius-hairline: var(--radius-hairline);

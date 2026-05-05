@@ -7,28 +7,27 @@ import {
   type UserProfileRecord,
 } from "@cardinalxchange/db";
 
+import type { Serialized } from "@/backend/http/contracts";
 import { HttpError } from "@/backend/http/http";
 
-type UserActivityQuestion = UserActivityRecord["questions"][number];
-type UserActivityAnswer = UserActivityRecord["answers"][number];
-
-type UserProfileQuestionDto = Omit<UserActivityQuestion, "createdAt"> & {
-  createdAt: string;
-};
-
-type UserProfileAnswerDto = Omit<UserActivityAnswer, "createdAt"> & {
-  createdAt: string;
-};
-
-export type UserProfileDto = Pick<
-  UserProfileRecord,
-  "id" | "name" | "email" | "image" | "questionCount" | "answerCount"
-> & {
-  displayName: string;
-  joinedAt: string;
-  questions: UserProfileQuestionDto[];
-  answers: UserProfileAnswerDto[];
-};
+/**
+ * Wire shape of `/api/users/[id]`. Expressed as the serialized merge of the
+ * underlying records — when a column is added to `UserProfileRecord` or
+ * `UserActivityRecord`, the DTO tracks it automatically. The only divergence
+ * is `joinedAt` (renamed from `createdAt`) and `displayName` (always a string
+ * post-fallback, vs. nullable on the record), so those two fields are
+ * spelled out alongside the derivation.
+ */
+export type UserProfileDto = Serialized<
+  Pick<
+    UserProfileRecord,
+    "id" | "name" | "email" | "image" | "questionCount" | "answerCount"
+  > &
+    UserActivityRecord & {
+      displayName: string;
+      joinedAt: Date;
+    }
+>;
 
 export async function getUserProfile(userId: string): Promise<UserProfileDto> {
   const [profile, activity] = await Promise.all([
