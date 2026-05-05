@@ -12,11 +12,6 @@ enum QuestionStatus {
   ACCEPTED
 }
 
-enum UserRole {
-  STUDENT
-  MODERATOR
-}
-
 enum AiChatRole {
   USER
   ASSISTANT
@@ -34,8 +29,6 @@ model Question {
   slug           String           @unique
   title          String           @db.VarChar(180)
   body           String
-  authorId       String?
-  author         User?            @relation("UserQuestions", fields: [authorId], references: [id], onDelete: SetNull)
   authorName     String           @db.VarChar(80)
   authorMeta     String?          @db.VarChar(120)
   status         QuestionStatus   @default(OPEN)
@@ -50,7 +43,6 @@ model Question {
   @@index([status, lastActivityAt])
   @@index([createdAt])
   @@index([lastActivityAt])
-  @@index([authorId])
 }
 
 model Answer {
@@ -58,8 +50,6 @@ model Answer {
   questionId    String
   question      Question           @relation(fields: [questionId], references: [id], onDelete: Cascade)
   body          String
-  authorId      String?
-  author        User?              @relation("UserAnswers", fields: [authorId], references: [id], onDelete: SetNull)
   authorName    String             @db.VarChar(80)
   authorMeta    String?            @db.VarChar(120)
   createdAt     DateTime           @default(now())
@@ -67,7 +57,6 @@ model Answer {
   aiChatSources AiChatSource[]     @relation("AiChatSourceAnswer")
 
   @@index([questionId, createdAt])
-  @@index([authorId])
 }
 
 model Tag {
@@ -140,61 +129,4 @@ model AiChatSource {
   @@index([messageId])
   @@index([sourceQuestionId])
   @@index([sourceAnswerId])
-}
-
-model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
-  emailVerified DateTime?
-  name          String?    @db.VarChar(120)
-  displayName   String?    @db.VarChar(80)
-  image         String?    @db.VarChar(500)
-  role          UserRole   @default(STUDENT)
-  deletedAt     DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  questions     Question[] @relation("UserQuestions")
-  answers       Answer[]   @relation("UserAnswers")
-
-  @@index([email])
-  @@index([deletedAt])
-}
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@id([identifier, token])
 }
