@@ -28,6 +28,13 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      # Ensure the Prisma client is generated. The postinstall hook in
+      # packages/db should handle this, but pnpm sometimes silently skips
+      # dep-script execution on CI; running it explicitly is a belt-and-
+      # suspenders guarantee that the workspace's TypeScript types resolve.
+      - run: pnpm --filter @cardinalxchange/db prisma:generate
+
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
