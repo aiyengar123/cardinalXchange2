@@ -25,6 +25,15 @@ export const createAnswerInput = z.object({
   authorMeta: z.string().trim().min(1).max(120).optional(),
 });
 
+export const updateUserProfileInput = z.object({
+  displayName: z
+    .string()
+    .trim()
+    .max(80, "Display name must be 80 characters or fewer.")
+    .nullable()
+    .optional(),
+});
+
 const uiMessagePartSchema = z
   .object({
     type: z.string(),
@@ -45,7 +54,9 @@ const uiMessageSchema = z
 
 export const cxcChatInput = z.object({
   id: z.string().trim().min(1).max(120),
-  messages: z.array(uiMessageSchema).min(1, "At least one message is required."),
+  messages: z
+    .array(uiMessageSchema)
+    .min(1, "At least one message is required."),
 });
 
 export const cxcChatMessagesInput = z.object({
@@ -56,6 +67,19 @@ export type CreateQuestionInputParsed = z.infer<typeof createQuestionInput>;
 export type CreateAnswerInputParsed = z.infer<typeof createAnswerInput>;
 export type CxcChatInputParsed = z.infer<typeof cxcChatInput>;
 export type CxcChatMessagesInputParsed = z.infer<typeof cxcChatMessagesInput>;
+export type UpdateUserProfileInputParsed = z.infer<
+  typeof updateUserProfileInput
+>;
+
+export function parseUpdateUserProfileInput(
+  payload: Record<string, unknown>,
+): UpdateUserProfileInputParsed {
+  const result = updateUserProfileInput.safeParse(payload);
+  if (!result.success) {
+    throw zodToHttpError(result.error, "invalid_user_profile_input");
+  }
+  return result.data;
+}
 
 /**
  * Lightweight wrappers that translate zod parse errors into `HttpError`

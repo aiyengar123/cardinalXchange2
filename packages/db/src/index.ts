@@ -39,7 +39,11 @@ export {
   ensureAiChatSessionRecord,
   replaceAiChatSessionMessages,
 } from "./cxc.mutations";
+export { listTagsWithCounts, type TagWithCountRecord } from "./tags.queries";
 export {
-  listTagsWithCounts,
-  type TagWithCountRecord,
-} from "./tags.queries";
+  getUserProfileRecord,
+  getUserActivityRecord,
+  type UserProfileRecord,
+  type UserActivityRecord,
+} from "./users.queries";
+export { updateUserDisplayName, softDeleteUser } from "./users.mutations";
