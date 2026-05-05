@@ -11,6 +11,8 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 
+import { Button } from "@cardinalxchange/ui";
+
 import type { CreateAnswerInput } from "@/backend/http/contracts";
 
 type AnswerComposerProps = {
@@ -296,13 +298,9 @@ export function AnswerComposer({ questionId }: AnswerComposerProps) {
         ) : null}
 
         <div className="mt-4">
-          <button
-            className="inline-flex h-10 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-5 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={submitting}
-            type="submit"
-          >
+          <Button className="px-5" disabled={submitting} type="submit">
             {submitting ? "Posting…" : "Post Answer"}
-          </button>
+          </Button>
         </div>
       </form>
     </section>

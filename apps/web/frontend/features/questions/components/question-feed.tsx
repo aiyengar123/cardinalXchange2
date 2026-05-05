@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { buttonVariants, cn } from "@cardinalxchange/ui";
+
 import { QuestionRow } from "@/features/questions/components/question-row";
 import type { QuestionRowDto } from "@/backend/http/contracts";
 
@@ -84,7 +86,7 @@ export function QuestionFeedEmptyState({
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
-              className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-4 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2"
+              className={buttonVariants({ variant: "primary" })}
               href={
                 filter?.tag
                   ? `/ask?draft=${encodeURIComponent(JSON.stringify({ tags: [filter.tag] }))}`
@@ -94,7 +96,7 @@ export function QuestionFeedEmptyState({
               Ask a Question
             </Link>
             <Link
-              className="inline-flex h-9 items-center justify-center rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-4 text-sm font-semibold text-[var(--color-ink-900)] transition-colors duration-150 ease-out hover:border-[var(--color-border-strong)] hover:bg-[var(--color-ink-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+              className={buttonVariants({ variant: "secondary" })}
               href="/questions"
             >
               Clear filter
@@ -111,7 +113,7 @@ export function QuestionFeedEmptyState({
             answer.
           </p>
           <Link
-            className="mt-6 inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-4 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2"
+            className={cn("mt-6", buttonVariants({ variant: "primary" }))}
             href="/ask"
           >
             Ask a Question

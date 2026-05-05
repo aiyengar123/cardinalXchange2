@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo } from "react";
 
+import { buttonVariants } from "@cardinalxchange/ui";
+
 import { CitationBubble } from "@/features/cxc-ai/components/citation-bubble";
 import { CitedText } from "@/features/cxc-ai/components/cited-text";
 import { RelatedQuestions } from "@/features/cxc-ai/components/related-questions";
@@ -140,7 +142,7 @@ function AskCommunityDraftCard({ draft }: { draft: AskCommunityDraft }) {
       ) : null}
       <div className="mt-3 flex justify-end">
         <Link
-          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-3 text-xs font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 focus-visible:outline-none"
+          className={buttonVariants({ variant: "primary", size: "sm" })}
           href={`/ask?draft=${encoded}`}
         >
           Use this draft

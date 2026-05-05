@@ -10,6 +10,8 @@ import {
   type FormEvent,
 } from "react";
 
+import { buttonVariants, cn } from "@cardinalxchange/ui";
+
 import { useSession } from "@/frontend/auth/auth-client";
 import { UserMenu } from "./user-menu";
 
@@ -53,7 +55,7 @@ function AskQuestionButton() {
   return (
     <Link
       aria-label="Ask a question"
-      className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-cardinal-500)] px-5 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 focus-visible:outline-none"
+      className={cn(buttonVariants({ variant: "primary" }), "shrink-0 px-5")}
       href={href}
     >
       Ask Question

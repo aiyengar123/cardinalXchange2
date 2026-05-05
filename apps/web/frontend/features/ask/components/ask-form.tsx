@@ -12,6 +12,8 @@ import {
   type KeyboardEvent,
 } from "react";
 
+import { Button, buttonVariants } from "@cardinalxchange/ui";
+
 import type {
   CreateQuestionInput,
   QuestionDetailDto,
@@ -64,7 +66,10 @@ export function AskForm({ initialDraft }: AskFormProps) {
   const remainingTagSlots = Math.max(0, MAX_TAGS - tags.length);
 
   const commitTag = useCallback((value: string) => {
-    const cleaned = value.trim().replace(/^,+|,+$/g, "").trim();
+    const cleaned = value
+      .trim()
+      .replace(/^,+|,+$/g, "")
+      .trim();
     if (!cleaned) {
       return;
     }
@@ -259,7 +264,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
           aria-describedby={fieldErrors.title ? titleErrorId : undefined}
           aria-invalid={fieldErrors.title ? "true" : undefined}
           autoComplete="off"
-          className={`block h-10 w-full rounded-md border bg-[var(--color-surface-base)] px-3 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:outline-none focus:ring-2 focus:ring-inset ${
+          className={`block h-10 w-full rounded-md border bg-[var(--color-surface-base)] px-3 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-300)] focus:ring-2 focus:outline-none focus:ring-inset ${
             fieldErrors.title
               ? "border-[var(--color-state-danger)] focus:border-[var(--color-state-danger)] focus:ring-[var(--color-state-danger)]"
               : "border-[var(--color-border-default)] focus:border-[var(--color-border-focus)] focus:ring-[var(--color-border-focus)]"
@@ -304,8 +309,8 @@ export function AskForm({ initialDraft }: AskFormProps) {
         <div
           className={`overflow-hidden rounded-md border ${
             fieldErrors.body
-              ? "border-[var(--color-state-danger)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-state-danger)]"
-              : "border-[var(--color-border-default)] focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-border-focus)]"
+              ? "border-[var(--color-state-danger)] focus-within:ring-2 focus-within:ring-[var(--color-state-danger)] focus-within:ring-inset"
+              : "border-[var(--color-border-default)] focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-[var(--color-border-focus)] focus-within:ring-inset"
           } bg-[var(--color-surface-base)]`}
         >
           <div
@@ -416,16 +421,16 @@ export function AskForm({ initialDraft }: AskFormProps) {
         >
           Tags
         </label>
-        <div className="flex min-h-10 flex-wrap items-center gap-2 rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-2 py-1.5 focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[var(--color-border-focus)]">
+        <div className="flex min-h-10 flex-wrap items-center gap-2 rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-2 py-1.5 focus-within:border-[var(--color-border-focus)] focus-within:ring-2 focus-within:ring-[var(--color-border-focus)] focus-within:ring-inset">
           {tags.map((tag) => (
             <span
-              className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border-default)] bg-[var(--color-ink-50)] px-2 py-0.5 text-xs font-medium leading-none text-[var(--color-ink-700)]"
+              className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border-default)] bg-[var(--color-ink-50)] px-2 py-0.5 text-xs leading-none font-medium text-[var(--color-ink-700)]"
               key={tag}
             >
               {tag}
               <button
                 aria-label={`Remove tag ${tag}`}
-                className="text-[var(--color-ink-500)] transition-colors duration-150 ease-out hover:text-[var(--color-cardinal-500)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+                className="text-[var(--color-ink-500)] transition-colors duration-150 ease-out hover:text-[var(--color-cardinal-500)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
                 disabled={submitting}
                 onClick={() => removeTag(tag)}
                 type="button"
@@ -465,18 +470,14 @@ export function AskForm({ initialDraft }: AskFormProps) {
       <div className="flex items-center justify-between gap-3 border-t border-[var(--color-border-default)] pt-4">
         <Link
           aria-disabled={submitting}
-          className="inline-flex h-9 items-center justify-center rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-4 text-sm font-medium text-[var(--color-ink-700)] transition-colors duration-150 ease-out hover:border-[var(--color-border-strong)] hover:text-[var(--color-ink-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2"
+          className={buttonVariants({ variant: "secondary" })}
           href="/questions"
         >
           Cancel
         </Link>
-        <button
-          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-[var(--color-cardinal-500)] px-4 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={submitting}
-          type="submit"
-        >
+        <Button disabled={submitting} type="submit">
           {submitting ? "Submitting…" : "Submit Question"}
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -496,7 +497,7 @@ function ToolbarButton({
   return (
     <button
       aria-label={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--color-ink-700)] transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] hover:text-[var(--color-ink-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--color-ink-700)] transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] hover:text-[var(--color-ink-900)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
       disabled={disabled}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
