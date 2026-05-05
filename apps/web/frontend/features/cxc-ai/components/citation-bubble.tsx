@@ -55,9 +55,8 @@ export function CitationBubble({ index, source }: CitationBubbleProps) {
 
   const label = `${labelPrefix(source.kind)}${index}`;
   const isWeb = source.kind === "web";
-  const snippet = source.snippet.trim().length > 0
-    ? source.snippet
-    : "No preview available.";
+  const snippet =
+    source.snippet.trim().length > 0 ? source.snippet : "No preview available.";
   const target =
     isWeb && source.url && source.url.length > 0
       ? source.url
@@ -72,7 +71,7 @@ export function CitationBubble({ index, source }: CitationBubbleProps) {
       <button
         aria-expanded={open}
         aria-label={`Source ${label}: ${source.title}`}
-        className="inline-flex items-center align-baseline rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-1.5 py-0 text-[11px] font-semibold leading-[1.4] text-[var(--color-cardinal-500)] hover:border-[var(--color-cardinal-500)] hover:bg-[var(--color-cardinal-500)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+        className="inline-flex items-center rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-1.5 py-0 align-baseline text-[11px] leading-[1.4] font-semibold text-[var(--color-cardinal-500)] hover:border-[var(--color-cardinal-500)] hover:bg-[var(--color-cardinal-500)] hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
         onBlur={scheduleClose}
         onClick={() => setOpen((prev) => !prev)}
         onFocus={openNow}
@@ -87,23 +86,23 @@ export function CitationBubble({ index, source }: CitationBubbleProps) {
       </button>
       {open ? (
         <span
-          className="absolute left-0 top-full z-20 mt-1 w-80 max-w-[22rem] rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
+          className="absolute top-full left-0 z-20 mt-1 w-80 max-w-[22rem] rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-3 shadow-[var(--shadow-overlay)]"
           onMouseEnter={openNow}
           onMouseLeave={scheduleClose}
           role="dialog"
         >
-          <span className="inline-flex items-center rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-ink-500)]">
+          <span className="inline-flex items-center rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--color-ink-500)] uppercase">
             {kindBadge(source.kind)}
           </span>
           <span className="mt-2 block font-semibold text-[var(--color-ink-900)]">
             {source.title}
           </span>
-          <span className="mt-1 block overflow-hidden text-xs leading-relaxed text-[var(--color-ink-700)] [-webkit-box-orient:vertical] [-webkit-line-clamp:4] [display:-webkit-box]">
+          <span className="mt-1 [display:-webkit-box] block overflow-hidden text-xs leading-relaxed text-[var(--color-ink-700)] [-webkit-box-orient:vertical] [-webkit-line-clamp:4]">
             {snippet}
           </span>
           <span className="mt-3 block">
             <a
-              className="text-xs font-semibold text-[var(--color-cardinal-500)] underline underline-offset-2 hover:text-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+              className="text-xs font-semibold text-[var(--color-cardinal-500)] underline underline-offset-2 hover:text-[var(--color-cardinal-600)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
               href={target}
               onBlur={scheduleClose}
               onFocus={openNow}
