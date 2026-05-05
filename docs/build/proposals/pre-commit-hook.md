@@ -18,6 +18,7 @@ Source task: `docs/build/tasks/build-2/03-pre-commit.md`.
   }
   ```
 - `CLAUDE.md` — new "Development" section documents the hook, the `prepare` provisioning step, and the no-`--no-verify` rule.
+- `.prettierignore` — keeps prettier (and therefore lint-staged) off generated artifacts: `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `.next/`, `.turbo/`, `dist/`, `coverage/`, `node_modules/`, `packages/db/generated/`, `*.tsbuildinfo`. Without this, staging the lockfile after a dep bump would force prettier to rewrite it.
 
 ## Not added (per task hard rules)
 
