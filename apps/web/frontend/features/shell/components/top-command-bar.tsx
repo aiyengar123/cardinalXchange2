@@ -10,6 +10,9 @@ import {
   type FormEvent,
 } from "react";
 
+import { useSession } from "@/frontend/auth/auth-client";
+import { UserMenu } from "./user-menu";
+
 /**
  * White top bar with cardinal-red wordmark, search field, and primary
  * Ask Question CTA. The image is the source of truth: white background
@@ -23,10 +26,10 @@ export function TopCommandBar() {
       className="sticky top-0 z-30 border-b border-[var(--color-border-default)] bg-white text-[var(--color-ink-900)]"
       role="banner"
     >
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-2 px-4 py-3 sm:flex-row sm:h-[68px] sm:items-center sm:gap-4 sm:py-0 sm:px-6">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-2 px-4 py-3 sm:h-[68px] sm:flex-row sm:items-center sm:gap-4 sm:px-6 sm:py-0">
         <Link
           aria-label="CardinalXchange home"
-          className="flex shrink-0 items-center gap-2 text-base font-semibold tracking-tight text-[var(--color-cardinal-500)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+          className="flex shrink-0 items-center gap-2 text-base font-semibold tracking-tight text-[var(--color-cardinal-500)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
           href="/questions"
         >
           <BrandMark />
@@ -37,15 +40,24 @@ export function TopCommandBar() {
           <SearchField />
         </Suspense>
 
-        <Link
-          aria-label="Ask a question"
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-cardinal-500)] px-5 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2"
-          href="/ask"
-        >
-          Ask Question
-        </Link>
+        <AskQuestionButton />
+        <UserMenu />
       </div>
     </header>
+  );
+}
+
+function AskQuestionButton() {
+  const session = useSession();
+  const href = session.data ? "/ask" : "/login?next=/ask";
+  return (
+    <Link
+      aria-label="Ask a question"
+      className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-cardinal-500)] px-5 text-sm font-semibold text-white transition-colors duration-150 ease-out hover:bg-[var(--color-cardinal-600)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 focus-visible:outline-none"
+      href={href}
+    >
+      Ask Question
+    </Link>
   );
 }
 
@@ -53,7 +65,7 @@ function BrandMark() {
   return (
     <span
       aria-hidden
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-cardinal-500)] text-sm font-bold leading-none text-white"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-cardinal-500)] text-sm leading-none font-bold text-white"
     >
       S
     </span>
@@ -64,7 +76,7 @@ function SearchIcon() {
   return (
     <svg
       aria-hidden
-      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-ink-500)]"
+      className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[var(--color-ink-500)]"
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -110,7 +122,7 @@ function SearchField() {
       <SearchIcon />
       <input
         autoComplete="off"
-        className="block h-10 w-full min-w-[8rem] rounded-lg border border-[var(--color-border-default)] bg-white pl-9 pr-4 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-500)] focus:border-[var(--color-border-focus)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-border-focus)]"
+        className="block h-10 w-full min-w-[8rem] rounded-lg border border-[var(--color-border-default)] bg-white pr-4 pl-9 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-500)] focus:border-[var(--color-border-focus)] focus:ring-2 focus:ring-[var(--color-border-focus)] focus:outline-none focus:ring-inset"
         id="top-bar-search"
         name="query"
         onChange={(event) => setQuery(event.target.value)}
@@ -131,7 +143,7 @@ function SearchFallback() {
       <SearchIcon />
       <input
         aria-label="Search questions"
-        className="block h-10 w-full min-w-[8rem] rounded-lg border border-[var(--color-border-default)] bg-white pl-9 pr-4 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-500)]"
+        className="block h-10 w-full min-w-[8rem] rounded-lg border border-[var(--color-border-default)] bg-white pr-4 pl-9 text-sm text-[var(--color-ink-900)] placeholder:text-[var(--color-ink-500)]"
         disabled
         id="top-bar-search-fallback"
         placeholder="Search questions, tags, and answers"
