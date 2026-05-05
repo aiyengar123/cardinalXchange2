@@ -54,11 +54,12 @@ export function CitationBubble({ index, source }: CitationBubbleProps) {
   }, []);
 
   const label = `${labelPrefix(source.kind)}${index}`;
+  const isWeb = source.kind === "web";
   const snippet = source.snippet.trim().length > 0
     ? source.snippet
     : "No preview available.";
   const target =
-    source.url && source.url.length > 0
+    isWeb && source.url && source.url.length > 0
       ? source.url
       : `/questions/${source.questionId}`;
 
@@ -78,6 +79,11 @@ export function CitationBubble({ index, source }: CitationBubbleProps) {
         type="button"
       >
         {label}
+        {isWeb ? (
+          <span aria-hidden className="ml-0.5">
+            ↗
+          </span>
+        ) : null}
       </button>
       {open ? (
         <span
@@ -101,8 +107,8 @@ export function CitationBubble({ index, source }: CitationBubbleProps) {
               href={target}
               onBlur={scheduleClose}
               onFocus={openNow}
-              rel="noreferrer"
-              target="_blank"
+              rel={isWeb ? "noreferrer noopener" : undefined}
+              target={isWeb ? "_blank" : undefined}
             >
               Open source ↗
             </a>

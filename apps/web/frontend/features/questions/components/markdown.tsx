@@ -3,8 +3,9 @@ import { Fragment, type ReactNode } from "react";
 /**
  * Tiny safe markdown renderer for question and answer bodies. Handles the
  * subset visible in the canonical image: numbered/bulleted lists, paragraphs,
- * bare http(s) links, **bold**, *italic*, and `code`. Renders plain React
- * nodes — no `dangerouslySetInnerHTML`, no third-party deps.
+ * bare http(s) links, **bold**, *italic*, `code`, fenced code blocks,
+ * pipe tables, and blockquotes. Renders plain React nodes — no
+ * `dangerouslySetInnerHTML`, no third-party deps.
  */
 export function Markdown({ source }: { source: string }) {
   const blocks = parseBlocks(source);
@@ -18,10 +19,16 @@ export function Markdown({ source }: { source: string }) {
 type Block =
   | { kind: "p"; lines: string[] }
   | { kind: "ol"; items: string[] }
-  | { kind: "ul"; items: string[] };
+  | { kind: "ul"; items: string[] }
+  | { kind: "code"; language: string; content: string }
+  | { kind: "blockquote"; lines: string[] }
+  | { kind: "table"; header: string[]; rows: string[][] };
 
 const ORDERED_LINE = /^(\d+)\.\s+(.*)$/;
 const UNORDERED_LINE = /^[-*]\s+(.*)$/;
+const FENCE_LINE = /^```(\S*)\s*$/;
+const BLOCKQUOTE_LINE = /^>\s?(.*)$/;
+const TABLE_DIVIDER_LINE = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/;
 
 function parseBlocks(source: string): Block[] {
   const blocks: Block[] = [];
@@ -33,6 +40,55 @@ function parseBlocks(source: string): Block[] {
 
     if (line.trim() === "") {
       i += 1;
+      continue;
+    }
+
+    const fenceMatch = line.match(FENCE_LINE);
+    if (fenceMatch) {
+      const language = fenceMatch[1] ?? "";
+      const codeLines: string[] = [];
+      i += 1;
+      while (i < lines.length) {
+        const next = lines[i] ?? "";
+        if (FENCE_LINE.test(next)) {
+          i += 1;
+          break;
+        }
+        codeLines.push(next);
+        i += 1;
+      }
+      blocks.push({
+        kind: "code",
+        language,
+        content: codeLines.join("\n"),
+      });
+      continue;
+    }
+
+    if (BLOCKQUOTE_LINE.test(line)) {
+      const quoteLines: string[] = [];
+      while (i < lines.length) {
+        const next = lines[i] ?? "";
+        const m = next.match(BLOCKQUOTE_LINE);
+        if (!m) break;
+        quoteLines.push(m[1] ?? "");
+        i += 1;
+      }
+      blocks.push({ kind: "blockquote", lines: quoteLines });
+      continue;
+    }
+
+    if (isTableHeaderCandidate(line, lines[i + 1] ?? "")) {
+      const header = splitTableRow(line);
+      const rows: string[][] = [];
+      i += 2;
+      while (i < lines.length) {
+        const next = lines[i] ?? "";
+        if (next.trim() === "" || !next.includes("|")) break;
+        rows.push(splitTableRow(next));
+        i += 1;
+      }
+      blocks.push({ kind: "table", header, rows });
       continue;
     }
 
@@ -86,6 +142,9 @@ function parseBlocks(source: string): Block[] {
       const next = lines[i] ?? "";
       if (next.trim() === "") break;
       if (ORDERED_LINE.test(next) || UNORDERED_LINE.test(next)) break;
+      if (FENCE_LINE.test(next)) break;
+      if (BLOCKQUOTE_LINE.test(next)) break;
+      if (isTableHeaderCandidate(next, lines[i + 1] ?? "")) break;
       para.push(next);
       i += 1;
     }
@@ -93,6 +152,23 @@ function parseBlocks(source: string): Block[] {
   }
 
   return blocks;
+}
+
+function isTableHeaderCandidate(headerLine: string, dividerLine: string): boolean {
+  if (!headerLine.includes("|")) return false;
+  if (!TABLE_DIVIDER_LINE.test(dividerLine)) return false;
+  const headerCells = splitTableRow(headerLine);
+  const dividerCells = splitTableRow(dividerLine);
+  if (headerCells.length === 0) return false;
+  if (headerCells.length !== dividerCells.length) return false;
+  return true;
+}
+
+function splitTableRow(line: string): string[] {
+  let trimmed = line.trim();
+  if (trimmed.startsWith("|")) trimmed = trimmed.slice(1);
+  if (trimmed.endsWith("|")) trimmed = trimmed.slice(0, -1);
+  return trimmed.split("|").map((cell) => cell.trim());
 }
 
 function appendToLast(items: string[], suffix: string) {
@@ -125,17 +201,82 @@ function renderBlock(block: Block, index: number): ReactNode {
       </ol>
     );
   }
+  if (block.kind === "ul") {
+    return (
+      <ul
+        key={index}
+        className="list-disc space-y-1 pl-6 marker:text-[var(--color-ink-500)]"
+      >
+        {block.items.map((item, i) => (
+          <li key={i} className="leading-relaxed">
+            {renderInline(item)}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  if (block.kind === "code") {
+    const codeClass = block.language
+      ? `language-${block.language}`
+      : undefined;
+    return (
+      <pre
+        key={index}
+        className="my-3 overflow-x-auto rounded-md border border-[var(--color-border-default)] bg-[var(--color-surface-sunk)] px-4 py-3 font-mono text-sm"
+      >
+        <code className={codeClass}>{block.content}</code>
+      </pre>
+    );
+  }
+  if (block.kind === "blockquote") {
+    const text = block.lines.join("\n");
+    return (
+      <blockquote
+        key={index}
+        className="my-3 whitespace-pre-line border-l-2 border-[var(--color-cardinal-500)] pl-4 italic text-[var(--color-ink-700)]"
+      >
+        {renderInline(text)}
+      </blockquote>
+    );
+  }
   return (
-    <ul
+    <div
       key={index}
-      className="list-disc space-y-1 pl-6 marker:text-[var(--color-ink-500)]"
+      className="my-3 overflow-x-auto rounded-md border border-[var(--color-border-default)]"
     >
-      {block.items.map((item, i) => (
-        <li key={i} className="leading-relaxed">
-          {renderInline(item)}
-        </li>
-      ))}
-    </ul>
+      <table className="w-full border-collapse text-sm">
+        <thead>
+          <tr className="bg-[var(--color-ink-50)] font-semibold">
+            {block.header.map((cell, i) => (
+              <th
+                key={i}
+                className="border border-[var(--color-border-default)] px-3 py-2 text-left"
+                scope="col"
+              >
+                {renderInline(cell)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {block.rows.map((row, rowIndex) => (
+            <tr
+              key={rowIndex}
+              className="even:bg-[var(--color-surface-sunk)]"
+            >
+              {block.header.map((_, cellIndex) => (
+                <td
+                  key={cellIndex}
+                  className="border border-[var(--color-border-default)] px-3 py-2"
+                >
+                  {renderInline(row[cellIndex] ?? "")}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

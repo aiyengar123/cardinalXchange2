@@ -62,7 +62,7 @@ export function ChatShell({
             How can I help?
           </h1>
           <p className="mt-3 text-center text-sm text-[var(--color-ink-500)]">
-            Answers grounded in public CardinalXchange questions and answers.
+            Grounded in public CardinalXchange questions. Always check the source.
           </p>
           <div className="mt-8">
             <PromptInput
