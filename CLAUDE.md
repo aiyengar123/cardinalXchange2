@@ -93,7 +93,7 @@ Path alias: `@/*` resolves to `apps/web/*` (see `apps/web/tsconfig.json`). Use i
 - **Mounted handlers:** `apps/web/app/api/auth/[...all]/route.ts` re-exports `toNextJsHandler(auth)`.
 - **Identity seam:** `getViewer()` in `apps/web/backend/viewer/viewer.ts` is the only function services or route handlers may call to read identity. Behind it, `getViewerFromSession()` in `apps/web/backend/auth/session.ts` reads the live session. Anonymous viewers have `isAuthenticated: false` and writes 401.
 - **Sign-in providers:** the `magicLink` plugin is wired now and only accepts `*@stanford.edu` addresses (server-side guard in `sendMagicLink`). Stanford SSO (SAML/OIDC) is the next provider to wire — the `STANFORD_SAML_*` / `STANFORD_OIDC_*` env vars are placeholders only; do **not** commit real Stanford IT secrets.
-- **Email transport:** development logs the magic link to the server console. Production wires an SMTP transport via `EMAIL_SERVER_*` (Mailtrap / Postmark / SES are all fine).
+- **Email transport:** wired in `apps/web/backend/auth/email-transport.ts` via `nodemailer`. Reads `EMAIL_SERVER_HOST` / `_PORT` / `_USER` / `_PASSWORD` and `EMAIL_FROM`. When all are set, magic-link emails go through SMTP (works in dev or prod — point at Mailtrap to test the real flow locally). When unset: dev logs the link to the server console; prod throws a clear error so the operator sees the deploy is incomplete.
 - **Proxy (Next 16):** `apps/web/proxy.ts` redirects unauthenticated users from `/settings` to `/login?next=…` based on the session cookie. (Next 16 deprecated `middleware.ts` in favor of `proxy.ts` — same role, new file name + exported function name.) Full validation still happens server-side in pages and route handlers.
 
 ## Environment

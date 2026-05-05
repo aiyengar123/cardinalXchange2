@@ -4,12 +4,23 @@ import { magicLink } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { prisma } from "@cardinalxchange/db";
 
+import { sendMagicLinkEmail } from "./email-transport";
+
 const STANFORD_DOMAIN = "stanford.edu";
 
 function isStanfordEmail(email: string): boolean {
   const at = email.lastIndexOf("@");
   if (at === -1) return false;
   return email.slice(at + 1).toLowerCase() === STANFORD_DOMAIN;
+}
+
+function isEmailTransportConfigured(): boolean {
+  return Boolean(
+    process.env.EMAIL_SERVER_HOST?.trim() &&
+    process.env.EMAIL_SERVER_USER?.trim() &&
+    process.env.EMAIL_SERVER_PASSWORD?.trim() &&
+    process.env.EMAIL_FROM?.trim(),
+  );
 }
 
 export const auth = betterAuth({
@@ -26,14 +37,24 @@ export const auth = betterAuth({
             "Magic-link sign-in is restricted to stanford.edu addresses.",
           );
         }
-        // Dev: log the link so it can be copied from the server console.
-        // Prod: a real SMTP transport (Mailtrap / Postmark / SES) plugs in here.
+
+        // If EMAIL_SERVER_* is configured, use the SMTP transport (works
+        // in dev OR prod — set EMAIL_SERVER_HOST against Mailtrap if you
+        // want to test the real flow locally).
+        if (isEmailTransportConfigured()) {
+          await sendMagicLinkEmail({ to: email, url });
+          return;
+        }
+
+        // No transport configured. In dev, log the link so it can be
+        // copied from the server console. In prod, fail loudly so the
+        // operator knows the deploy is incomplete.
         if (process.env.NODE_ENV !== "production") {
           console.log(`[auth] Magic link for ${email}: ${url}`);
           return;
         }
         throw new Error(
-          "No email transport configured. Set EMAIL_SERVER_* and wire a transport in apps/web/backend/auth/auth.ts.",
+          "Email transport is not configured. Set EMAIL_SERVER_HOST, EMAIL_SERVER_PORT, EMAIL_SERVER_USER, EMAIL_SERVER_PASSWORD, and EMAIL_FROM.",
         );
       },
     }),
