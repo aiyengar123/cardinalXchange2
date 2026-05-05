@@ -6,20 +6,6 @@ Format per item: **what it is** · _when it likely matters_ · brief note.
 
 ---
 
-## Growth & Marketing
-
-- **Marketing site / landing page** · _before public launch_ · The current `/questions` redirect is fine for invited beta users. A real `/` landing (problem, screenshots, who it's for, "request access") becomes important once you stop personally onboarding everyone.
-- **Branding pass** · _before public launch_ · Logo (the cardinal-red `S` is a stopgap), favicon, OG image, social-card image generator, brand guidelines doc. The current shell looks generic-Stanford; it could feel more distinctive.
-- **OG image generator** · _before sharing on social_ · `app/og/route.ts` using `next/og` to render question titles + tags into a card. Makes shared links look like a product, not a 404.
-- **Onboarding email** · _after first 10 sign-ups_ · Postmark/Resend transactional email greeting new users + a starter list of questions to answer. Sets the norm that you answer too, not just ask.
-- **Stanford-channel distribution** · _post-MVP_ · Where do Stanford students actually find tools? Class GroupMes, Ed Discussion (ironically), residence-hall Slacks, club newsletters, the Daily. Pick 2-3 to seed.
-- **Referral / invite mechanic** · _if growth stalls_ · "Invite a Stanford friend" with attribution. Doesn't need to be aggressive — Stanford is small enough that organic word-of-mouth might suffice.
-- **Power-user spotlight** · _post-100 active users_ · Highlight people who answered the most questions in a quarter. Public profile already exists; just add a `/leaderboard` or weekly digest email.
-- **Class GroupMe scraper / cross-poster (one-way)** · _if data is hard to seed_ · Mirror approved questions from class GroupMes into CardinalXchange with consent. Risky, talk to the team first.
-- **Seed content from prior quarters** · _only if scope changes_ · Currently `CLAUDE.md` says no seed data. If marketing demands it, the right path is "import from public Ed Discussion threads with explicit owner consent" — not synthetic.
-
----
-
 ## Product
 
 - **Notifications** · _after first real users post questions and want answers_ · In-app + email when someone answers your question. Schema is simple: `Notification { id, userId, kind, payload, readAt? }`.
