@@ -83,7 +83,7 @@ apps/web/
 │   │   ├── cxc-ai/chats/[chatId]/messages/route.ts
 │   │   └── cxc-ai/chats/[chatId]/stream/route.ts
 │   ├── layout.tsx                # html/body/fonts only — no shell wrap here
-│   ├── middleware.ts             # session-cookie redirect for /settings (one level above app/)
+│   ├── proxy.ts                  # session-cookie redirect for /settings (Next 16 replaced middleware.ts with proxy.ts)
 │   ├── globals.css               # design tokens + Tailwind v4 @theme inline; @source "../frontend"
 │   └── fonts.ts                  # next/font/google: Inter (sans) + JetBrains Mono
 ├── backend/                      # app-local backend orchestration (no React)
@@ -267,7 +267,7 @@ If you're comparing to another codebase you've worked in:
 | `repositories/` / `dao/` | `packages/db/src/*.queries.ts` and `*.mutations.ts`                                                                                                                                                  |
 | `dto/`                   | `apps/web/backend/http/contracts.ts`                                                                                                                                                                 |
 | `validators/`            | `apps/web/backend/http/inputs.ts` (Zod parsers)                                                                                                                                                      |
-| `middleware/`            | `apps/web/middleware.ts` — Better Auth session-cookie redirect for `/settings`                                                                                                                       |
+| `middleware/`            | `apps/web/proxy.ts` — Better Auth session-cookie redirect for `/settings` (Next 16 replaced `middleware.ts` with `proxy.ts`)                                                                         |
 | `hooks/`                 | `apps/web/frontend/features/<feature>/hooks/`                                                                                                                                                        |
 | `lib/` / `utils/`        | `apps/web/shared/utils/` (framework-free) + `apps/web/backend/viewer/` (session reader)                                                                                                              |
 | `assets/`                | `apps/web/public/` (Next convention)                                                                                                                                                                 |
