@@ -4,6 +4,14 @@ vi.mock("@/backend/auth", () => ({
   getViewerFromSession: vi.fn(),
 }));
 
+vi.mock("@cardinalxchange/db", () => ({
+  getUserDisplayName: vi.fn(async (userId: string) => {
+    // Return null so the viewer falls back to session name/email
+    void userId;
+    return null;
+  }),
+}));
+
 import { getViewerFromSession } from "@/backend/auth";
 import { getViewer, ANONYMOUS_VIEWER } from "../viewer";
 
