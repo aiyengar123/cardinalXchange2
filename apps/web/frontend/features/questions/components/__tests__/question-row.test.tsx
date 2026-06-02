@@ -34,7 +34,7 @@ describe("QuestionRow", () => {
     expect(link.getAttribute("href")).toBe("/questions/drop-cs-109");
   });
 
-  it("renders the excerpt under the title", () => {
+  it("does not render the excerpt", () => {
     render(
       <QuestionRow
         question={row({ excerpt: "I want to drop CS 109 and need help." })}
@@ -42,8 +42,8 @@ describe("QuestionRow", () => {
     );
 
     expect(
-      screen.getByText("I want to drop CS 109 and need help."),
-    ).toBeInTheDocument();
+      screen.queryByText("I want to drop CS 109 and need help."),
+    ).not.toBeInTheDocument();
   });
 
   it("renders each tag as a link to /questions?tag=<slug>", () => {
