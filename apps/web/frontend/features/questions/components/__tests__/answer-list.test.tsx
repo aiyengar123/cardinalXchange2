@@ -17,13 +17,15 @@ function answer(overrides: Partial<AnswerDto> = {}): AnswerDto {
     author: "Alice",
     authorMeta: "CS '26",
     createdAt: "2026-04-01T00:00:00.000Z",
+    voteScore: 0,
+    viewerVote: 0,
     ...overrides,
   };
 }
 
 describe("AnswerList", () => {
   it("renders an empty state with the 'Answers' heading and helper copy", () => {
-    render(<AnswerList answers={[]} />);
+    render(<AnswerList answers={[]} questionId="q-1" />);
 
     expect(
       screen.getByRole("heading", { name: "Answers" }),
@@ -40,6 +42,7 @@ describe("AnswerList", () => {
           answer({ id: "a-1", body: "first" }),
           answer({ id: "a-2", body: "second" }),
         ]}
+        questionId="q-1"
       />,
     );
     expect(
@@ -55,6 +58,7 @@ describe("AnswerList", () => {
           answer({ id: "a-2", body: "second answer" }),
           answer({ id: "a-3", body: "third answer" }),
         ]}
+        questionId="q-1"
       />,
     );
     const items = screen.getAllByRole("listitem");
@@ -65,7 +69,9 @@ describe("AnswerList", () => {
   });
 
   it("renders the answer author meta line", () => {
-    render(<AnswerList answers={[answer({ author: "Stephen" })]} />);
+    render(
+      <AnswerList answers={[answer({ author: "Stephen" })]} questionId="q-1" />,
+    );
     expect(screen.getByText("Stephen")).toBeInTheDocument();
     expect(screen.getByText(/Answer by/)).toBeInTheDocument();
   });
