@@ -204,6 +204,7 @@ describe("getQuestionDetail", () => {
             authorMeta: "",
             createdAt: new Date("2026-04-01T00:00:00Z"),
             updatedAt: new Date("2026-04-01T00:00:00Z"),
+            votes: [],
           },
           {
             id: "a-2",
@@ -213,6 +214,7 @@ describe("getQuestionDetail", () => {
             authorMeta: "",
             createdAt: new Date("2026-04-02T00:00:00Z"),
             updatedAt: new Date("2026-04-02T00:00:00Z"),
+            votes: [],
           },
         ],
       }),

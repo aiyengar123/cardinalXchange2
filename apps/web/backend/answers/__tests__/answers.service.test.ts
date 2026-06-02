@@ -61,6 +61,8 @@ describe("addAnswer", () => {
       author: "Alice",
       authorMeta: "PhD '27",
       createdAt: "2026-04-01T00:00:00.000Z",
+      voteScore: 0,
+      viewerVote: 0,
     });
   });
 
@@ -134,6 +136,7 @@ describe("listAnswers", () => {
         authorMeta: "CS '26",
         createdAt: new Date("2026-04-01T00:00:00Z"),
         updatedAt: new Date("2026-04-01T00:00:00Z"),
+        votes: [],
       },
       {
         id: "a-2",
@@ -143,6 +146,7 @@ describe("listAnswers", () => {
         authorMeta: null,
         createdAt: new Date("2026-04-02T00:00:00Z"),
         updatedAt: new Date("2026-04-02T00:00:00Z"),
+        votes: [],
       },
     ]);
 
