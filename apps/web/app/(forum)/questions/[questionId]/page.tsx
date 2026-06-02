@@ -30,7 +30,7 @@ export default async function QuestionDetailPage({
   return (
     <div className="flex flex-col gap-8 py-2">
       <QuestionDetail question={question} />
-      <AnswerList answers={question.answersList} />
+      <AnswerList answers={question.answersList} questionId={question.slug} />
       <AnswerComposer questionId={question.slug} />
     </div>
   );

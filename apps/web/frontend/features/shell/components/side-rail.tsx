@@ -17,7 +17,7 @@ export function SideRail() {
       <div className="flex flex-col gap-4">
         <div className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-4">
           <h2 className="text-sm font-semibold tracking-tight text-[var(--color-ink-900)]">
-            About CardinalXchange
+            About cardinalXchange
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-700)]">
             A Stanford-only Q&amp;A space. Ask, answer, and search public
@@ -33,7 +33,7 @@ export function SideRail() {
             {topicTags.map((tag) => (
               <li key={tag.slug}>
                 <Link
-                  className="block px-1 py-1 text-sm text-[var(--color-ink-700)] hover:text-[var(--color-cardinal-500)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+                  className="block px-1 py-1 text-sm text-[var(--color-ink-700)] hover:text-[var(--color-cardinal-500)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
                   href={`/questions?tag=${tag.slug}`}
                 >
                   {tag.label}

@@ -34,13 +34,16 @@ export async function listQuestions(): Promise<QuestionSummaryDto[]> {
 export async function getQuestionDetail(
   questionId: string,
 ): Promise<QuestionDetailDto> {
-  const question = await findQuestionByIdentity(questionId);
+  const [question, viewer] = await Promise.all([
+    findQuestionByIdentity(questionId),
+    getViewer(),
+  ]);
 
   if (!question) {
     throw new HttpError(404, "question_not_found", "Question not found.");
   }
 
-  return toDetailDto(question);
+  return toDetailDto(question, viewer.isAuthenticated ? viewer.id : undefined);
 }
 
 export async function createQuestion(

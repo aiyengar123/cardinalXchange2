@@ -10,6 +10,7 @@ const ALLOWED_SORTS: ReadonlySet<FeedSort> = new Set([
   "newest",
   "active",
   "unanswered",
+  "answered",
 ]);
 
 export async function GET(request: Request) {

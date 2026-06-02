@@ -5,7 +5,7 @@ import { getUserProfile } from "@/backend/users";
 import { SettingsForm } from "@/features/auth/components/settings-form";
 
 export const metadata = {
-  title: "Settings — CardinalXchange",
+  title: "Settings — cardinalXchange",
 };
 
 export default async function SettingsPage() {

@@ -2,7 +2,7 @@
 // `@/backend/http/contracts`. This file is the home for in-server orchestration
 // shapes that consumers in `apps/web/backend/**` import.
 
-export type FeedSort = "newest" | "active" | "unanswered";
+export type FeedSort = "newest" | "active" | "unanswered" | "answered";
 
 export type ListQuestionsForFeedArgs = {
   tag?: string;

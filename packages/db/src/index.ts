@@ -3,9 +3,11 @@ export {
   questionInclude,
   questionFeedInclude,
   aiChatSessionInclude,
+  answerInclude,
   type QuestionRecord,
   type QuestionFeedRecord,
   type AiChatSessionRecord,
+  type AnswerRecord,
   type CreateQuestionRecordInput,
   type CreateAnswerRecordInput,
   type AiChatSourceInput,
@@ -26,6 +28,7 @@ export {
 export { createQuestionRecord } from "./questions.mutations";
 export { listAnswerRecords } from "./answers.queries";
 export { createAnswerRecord } from "./answers.mutations";
+export { upsertAnswerVote } from "./answer-votes.mutations";
 export {
   createAiChatSessionRecord,
   getAiChatSessionRecord,

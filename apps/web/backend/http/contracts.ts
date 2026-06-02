@@ -56,6 +56,8 @@ export type AnswerDto = {
   author: string;
   authorMeta: string;
   createdAt: string;
+  voteScore: number;
+  viewerVote: 1 | -1 | 0;
 };
 
 export type QuestionDetailDto = QuestionSummaryDto & {

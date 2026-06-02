@@ -14,7 +14,7 @@ type QuestionsPageProps = {
 
 const SORT_OPTIONS: ReadonlyArray<{ id: FeedSort; label: string }> = [
   { id: "newest", label: "Newest" },
-  { id: "active", label: "Answered" },
+  { id: "answered", label: "Answered" },
   { id: "unanswered", label: "Unanswered" },
 ];
 
@@ -28,9 +28,10 @@ export default async function QuestionsPage({
 
   const questions = await listQuestionsForFeed({ tag, sort });
   const filtered = query
-    ? questions.filter((question) =>
-        question.title.toLowerCase().includes(query.toLowerCase()) ||
-        question.excerpt.toLowerCase().includes(query.toLowerCase()),
+    ? questions.filter(
+        (question) =>
+          question.title.toLowerCase().includes(query.toLowerCase()) ||
+          question.excerpt.toLowerCase().includes(query.toLowerCase()),
       )
     : questions;
 
@@ -39,7 +40,7 @@ export default async function QuestionsPage({
   return (
     <div className="w-full">
       <header className="pt-2" id="tags">
-        <h1 className="text-3xl font-semibold leading-tight tracking-tight text-[var(--color-ink-900)] sm:text-4xl">
+        <h1 className="text-3xl leading-tight font-semibold tracking-tight text-[var(--color-ink-900)] sm:text-4xl">
           Questions
         </h1>
         {tag ? (
@@ -78,7 +79,7 @@ export default async function QuestionsPage({
           return (
             <Link
               aria-current={active ? "page" : undefined}
-              className={`-mb-px inline-flex h-10 items-center border-b-2 text-sm font-medium transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] ${
+              className={`-mb-px inline-flex h-10 items-center border-b-2 text-sm font-medium transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none ${
                 active
                   ? "border-[var(--color-cardinal-500)] text-[var(--color-cardinal-500)]"
                   : "border-transparent text-[var(--color-ink-500)] hover:text-[var(--color-ink-900)]"
@@ -103,7 +104,12 @@ export default async function QuestionsPage({
 }
 
 function isFeedSort(value: string | undefined): value is FeedSort {
-  return value === "newest" || value === "active" || value === "unanswered";
+  return (
+    value === "newest" ||
+    value === "active" ||
+    value === "unanswered" ||
+    value === "answered"
+  );
 }
 
 function sortHref({

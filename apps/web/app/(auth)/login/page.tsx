@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { LoginForm } from "@/features/auth/components/login-form";
 
 export const metadata = {
-  title: "Sign in — CardinalXchange",
+  title: "Sign in — cardinalXchange",
 };
 
 export default function LoginPage() {

@@ -1,6 +1,7 @@
 import type { AnswerDto } from "@/backend/http/contracts";
 
 import { Markdown } from "@/features/questions/components/markdown";
+import { VoteButtons } from "@/features/questions/components/vote-buttons";
 
 /**
  * Renders every answer in `createdAt asc` order — oldest first, matching the
@@ -8,7 +9,13 @@ import { Markdown } from "@/features/questions/components/markdown";
  * answers are stacked with a 1px ink-100 divider between them. Bodies render
  * markdown so numbered lists and links appear like the canonical image.
  */
-export function AnswerList({ answers }: { answers: AnswerDto[] }) {
+export function AnswerList({
+  answers,
+  questionId,
+}: {
+  answers: AnswerDto[];
+  questionId: string;
+}) {
   const heading =
     answers.length === 0 ? "Answers" : `Answers (${answers.length})`;
 
@@ -16,7 +23,7 @@ export function AnswerList({ answers }: { answers: AnswerDto[] }) {
     <section
       aria-labelledby="answers-heading"
       aria-live="polite"
-      className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-6 pb-2 pt-5"
+      className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-6 pt-5 pb-2"
     >
       <h2
         className="border-b border-[var(--color-border-default)] pb-2 text-lg font-semibold text-[var(--color-ink-900)]"
@@ -32,15 +39,25 @@ export function AnswerList({ answers }: { answers: AnswerDto[] }) {
       ) : (
         <ul className="divide-y divide-[var(--color-ink-100)]">
           {answers.map((answer) => (
-            <li className="py-5" key={answer.id}>
-              <Markdown source={answer.body} />
-              <p className="mt-3 text-xs text-[var(--color-ink-500)]">
-                Answer by{" "}
-                <span className="font-medium text-[var(--color-ink-700)]">
-                  {answer.author}
-                </span>{" "}
-                · {formatRelative(answer.createdAt)}
-              </p>
+            <li className="flex gap-4 py-5" key={answer.id}>
+              <div className="shrink-0">
+                <VoteButtons
+                  answerId={answer.id}
+                  initialScore={answer.voteScore}
+                  initialVote={answer.viewerVote}
+                  questionId={questionId}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <Markdown source={answer.body} />
+                <p className="mt-3 text-xs text-[var(--color-ink-500)]">
+                  Answer by{" "}
+                  <span className="font-medium text-[var(--color-ink-700)]">
+                    {answer.author}
+                  </span>{" "}
+                  · {formatRelative(answer.createdAt)}
+                </p>
+              </div>
             </li>
           ))}
         </ul>

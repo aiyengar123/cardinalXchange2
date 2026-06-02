@@ -10,7 +10,7 @@ import {
 
 export type ListQuestionRecordsArgs = {
   tag?: string;
-  sort?: "newest" | "active" | "unanswered";
+  sort?: "newest" | "active" | "unanswered" | "answered";
   take?: number;
 };
 
@@ -33,15 +33,15 @@ export async function listQuestionRecords(
   }
 
   if (sort === "unanswered") {
-    where.answers = {
-      none: {},
-    };
+    where.answers = { none: {} };
+  }
+
+  if (sort === "answered") {
+    where.answers = { some: {} };
   }
 
   const orderBy: Prisma.QuestionOrderByWithRelationInput =
-    sort === "newest"
-      ? { createdAt: "desc" }
-      : { lastActivityAt: "desc" };
+    sort === "newest" ? { createdAt: "desc" } : { lastActivityAt: "desc" };
 
   return prisma.question.findMany({
     where,
@@ -81,12 +81,12 @@ export async function searchQuestionRecords(
   legacyTags: string[] = [],
 ): Promise<QuestionRecord[]> {
   const normalized: SearchQuestionRecordsArgs =
-    typeof args === "string"
-      ? { query: args, tags: legacyTags }
-      : args;
+    typeof args === "string" ? { query: args, tags: legacyTags } : args;
 
   const trimmedQuery = normalized.query.trim();
-  const tagSlugs = normalizeTagLabels(normalized.tags ?? []).map((tag) => tag.slug);
+  const tagSlugs = normalizeTagLabels(normalized.tags ?? []).map(
+    (tag) => tag.slug,
+  );
   const limit = clampLimit(normalized.limit ?? 12);
   const filters: Prisma.QuestionWhereInput[] = [];
 

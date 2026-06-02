@@ -66,9 +66,25 @@ model Answer {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   aiChatSources AiChatSource[] @relation("AiChatSourceAnswer")
+  votes         AnswerVote[]
 
   @@index([questionId, createdAt])
   @@index([authorId])
+}
+
+model AnswerVote {
+  id        String   @id @default(cuid())
+  answerId  String
+  userId    String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  answer    Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([answerId, userId])
+  @@index([answerId])
+  @@index([userId])
 }
 
 model Tag {
@@ -158,6 +174,7 @@ model User {
   accounts      Account[]
   questions     Question[] @relation("UserQuestions")
   answers       Answer[]   @relation("UserAnswers")
+  answerVotes   AnswerVote[]
 
   @@unique([email])
   @@index([deletedAt])

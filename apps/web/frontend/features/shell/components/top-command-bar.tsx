@@ -30,12 +30,12 @@ export function TopCommandBar() {
     >
       <div className="mx-auto flex max-w-[var(--shell-max-width)] flex-col gap-2 px-4 py-3 sm:h-[var(--header-height)] sm:flex-row sm:items-center sm:gap-4 sm:px-6 sm:py-0">
         <Link
-          aria-label="CardinalXchange home"
+          aria-label="cardinalXchange home"
           className="flex shrink-0 items-center gap-2 text-base font-semibold tracking-tight text-[var(--color-cardinal-500)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
           href="/questions"
         >
           <BrandMark />
-          <span>CardinalXchange</span>
+          <span>cardinalXchange</span>
         </Link>
 
         <Suspense fallback={<SearchFallback />}>
@@ -67,9 +67,9 @@ function BrandMark() {
   return (
     <span
       aria-hidden
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-cardinal-500)] text-sm leading-none font-bold text-white"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-cardinal-500)] text-xs leading-none font-bold text-white"
     >
-      S
+      cXc
     </span>
   );
 }

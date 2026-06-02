@@ -51,7 +51,7 @@ export function LoginForm() {
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-ink-900)]">
-          Sign in to CardinalXchange
+          Sign in to cardinalXchange
         </h1>
         <p className="text-sm text-[var(--color-ink-700)]">
           Stanford community only. Sign in with your @{STANFORD_DOMAIN} email.

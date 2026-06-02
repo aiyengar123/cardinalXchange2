@@ -1,4 +1,8 @@
-import type { QuestionFeedRecord, QuestionRecord } from "@cardinalxchange/db";
+import type {
+  AnswerRecord,
+  QuestionFeedRecord,
+  QuestionRecord,
+} from "@cardinalxchange/db";
 
 import type {
   AnswerDto,
@@ -16,12 +20,15 @@ import type {
 
 type SummarizableQuestion = QuestionRecord | QuestionFeedRecord;
 
-export function toDetailDto(question: QuestionRecord): QuestionDetailDto {
+export function toDetailDto(
+  question: QuestionRecord,
+  viewerId?: string,
+): QuestionDetailDto {
   return {
     ...toSummaryDto(question),
     body: question.body,
     createdAt: question.createdAt.toISOString(),
-    answersList: question.answers.map(toAnswerDto),
+    answersList: question.answers.map((a) => toAnswerDto(a, viewerId)),
   };
 }
 
@@ -63,8 +70,15 @@ export function toSummaryDto(
 }
 
 export function toAnswerDto(
-  answer: QuestionRecord["answers"][number],
+  answer: AnswerRecord,
+  viewerId?: string,
 ): AnswerDto {
+  const voteScore = answer.votes.reduce((sum, v) => sum + v.value, 0);
+  const viewerVoteRecord = viewerId
+    ? answer.votes.find((v) => v.userId === viewerId)
+    : undefined;
+  const viewerVote = (viewerVoteRecord?.value ?? 0) as 1 | -1 | 0;
+
   return {
     id: answer.id,
     questionId: answer.questionId,
@@ -72,6 +86,8 @@ export function toAnswerDto(
     author: answer.authorName,
     authorMeta: answer.authorMeta ?? "",
     createdAt: answer.createdAt.toISOString(),
+    voteScore,
+    viewerVote,
   };
 }
 

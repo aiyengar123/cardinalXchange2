@@ -5,7 +5,7 @@ import { mono, sans } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CardinalXchange",
+  title: "cardinalXchange",
   description:
     "A Stanford-focused Q&A forum for clear questions and durable answers.",
 };

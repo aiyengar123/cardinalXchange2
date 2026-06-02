@@ -1,5 +1,13 @@
 import { Prisma } from "@prisma/client";
 
+export const answerInclude = {
+  votes: true,
+} satisfies Prisma.AnswerInclude;
+
+export type AnswerRecord = Prisma.AnswerGetPayload<{
+  include: typeof answerInclude;
+}>;
+
 export const questionInclude = {
   tags: {
     include: {
@@ -15,6 +23,7 @@ export const questionInclude = {
     orderBy: {
       createdAt: "asc",
     },
+    include: answerInclude,
   },
   _count: {
     select: {
