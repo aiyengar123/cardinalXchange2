@@ -39,3 +39,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
+        env:
+          BETTER_AUTH_SECRET: ci-build-secret
+          BETTER_AUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
