@@ -46,6 +46,7 @@ export { listTagsWithCounts, type TagWithCountRecord } from "./tags.queries";
 export {
   getUserProfileRecord,
   getUserActivityRecord,
+  getUserDisplayName,
   type UserProfileRecord,
   type UserActivityRecord,
 } from "./users.queries";

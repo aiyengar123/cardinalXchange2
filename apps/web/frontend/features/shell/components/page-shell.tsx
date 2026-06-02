@@ -48,21 +48,20 @@ export function PageShell({
   const resolvedSideRail = sideRail === undefined ? <SideRail /> : sideRail;
   const resolvedMainMaxWidth =
     mainMaxWidthClass ?? (secondaryRail ? "max-w-none" : "max-w-[860px]");
-  const resolvedContainer =
-    containerClassName ?? "mx-auto max-w-[1264px]";
+  const resolvedContainer = containerClassName ?? "mx-auto max-w-[1264px]";
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--color-surface-base)] text-[var(--color-ink-900)]">
+    <div className="flex min-h-screen flex-col bg-[var(--color-surface-canvas)] text-[var(--color-ink-900)]">
       <TopCommandBar />
       <div
         className={cn(
-          "flex w-full flex-1 min-h-0 gap-16 px-4 sm:px-6",
+          "flex min-h-0 w-full flex-1 gap-16 px-4 sm:px-6",
           resolvedContainer,
         )}
       >
         <TopicRail />
         {secondaryRail}
-        <main className={cn("flex-1 min-w-0 py-6", resolvedMainMaxWidth)}>
+        <main className={cn("min-w-0 flex-1 py-6", resolvedMainMaxWidth)}>
           {children}
         </main>
         {resolvedSideRail}

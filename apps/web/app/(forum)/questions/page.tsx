@@ -28,11 +28,18 @@ export default async function QuestionsPage({
 
   const questions = await listQuestionsForFeed({ tag, sort });
   const filtered = query
-    ? questions.filter(
-        (question) =>
-          question.title.toLowerCase().includes(query.toLowerCase()) ||
-          question.excerpt.toLowerCase().includes(query.toLowerCase()),
-      )
+    ? questions.filter((question) => {
+        const q = query.toLowerCase();
+        return (
+          question.title.toLowerCase().includes(q) ||
+          question.excerpt.toLowerCase().includes(q) ||
+          question.tags.some(
+            (tag) =>
+              tag.label.toLowerCase().includes(q) ||
+              tag.slug.toLowerCase().includes(q),
+          )
+        );
+      })
     : questions;
 
   const activeSort: FeedSort = sort ?? "newest";

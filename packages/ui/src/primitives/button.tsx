@@ -15,7 +15,7 @@ export const buttonVariants = cva(
   [
     "inline-flex items-center justify-center gap-2",
     "font-medium",
-    "border border-transparent",
+    "border",
     "transition-colors duration-150 ease-out",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]",
     "disabled:pointer-events-none disabled:opacity-50",
@@ -25,6 +25,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
+          "border-transparent",
           "bg-[var(--color-cardinal-500)] text-white",
           "hover:bg-[var(--color-cardinal-600)]",
           "active:bg-[var(--color-cardinal-700)]",
@@ -35,6 +36,7 @@ export const buttonVariants = cva(
           "hover:border-[var(--color-border-strong)] hover:bg-[var(--color-ink-50)]",
         ].join(" "),
         ghost: [
+          "border-transparent",
           "bg-transparent text-[var(--color-ink-700)]",
           "hover:bg-[var(--color-ink-50)] hover:text-[var(--color-ink-900)]",
         ].join(" "),

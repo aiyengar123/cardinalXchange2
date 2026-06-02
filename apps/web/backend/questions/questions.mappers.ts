@@ -24,11 +24,15 @@ export function toDetailDto(
   question: QuestionRecord,
   viewerId?: string,
 ): QuestionDetailDto {
+  const answersList = question.answers
+    .map((a) => toAnswerDto(a, viewerId))
+    .sort((a, b) => b.voteScore - a.voteScore);
+
   return {
     ...toSummaryDto(question),
     body: question.body,
     createdAt: question.createdAt.toISOString(),
-    answersList: question.answers.map((a) => toAnswerDto(a, viewerId)),
+    answersList,
   };
 }
 

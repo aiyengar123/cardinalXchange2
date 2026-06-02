@@ -2,6 +2,17 @@ import type { Answer, Question, User } from "@prisma/client";
 
 import { prisma } from "./client";
 
+export async function getUserDisplayName(
+  userId: string,
+): Promise<string | null> {
+  const user = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+    select: { displayName: true, name: true },
+  });
+  if (!user) return null;
+  return user.displayName?.trim() || user.name;
+}
+
 export type UserProfileRecord = Pick<
   User,
   "id" | "name" | "displayName" | "email" | "image" | "createdAt"

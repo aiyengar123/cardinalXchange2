@@ -49,7 +49,7 @@ export function UserMenu() {
   if (!session.data) {
     return (
       <Link
-        className="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--color-border-default)] bg-white px-4 text-sm font-medium text-[var(--color-ink-900)] transition-colors duration-150 ease-out hover:bg-[var(--color-surface-muted)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
+        className="inline-flex h-9 cursor-pointer items-center justify-center rounded-lg border border-[var(--color-border-default)] bg-white px-4 text-sm font-medium text-[var(--color-ink-900)] transition-colors duration-150 ease-out hover:bg-[var(--color-ink-50)] focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:outline-none"
         href="/login"
       >
         Sign in
@@ -93,7 +93,7 @@ export function UserMenu() {
             </div>
           </div>
           <Link
-            className="block px-4 py-2 text-sm text-[var(--color-ink-900)] hover:bg-[var(--color-surface-muted)]"
+            className="block cursor-pointer px-4 py-2 text-sm font-normal text-[var(--color-ink-900)] hover:bg-[var(--color-ink-50)]"
             href={`/users/${user.id}`}
             onClick={() => setOpen(false)}
             role="menuitem"
@@ -101,7 +101,7 @@ export function UserMenu() {
             Your profile
           </Link>
           <Link
-            className="block px-4 py-2 text-sm text-[var(--color-ink-900)] hover:bg-[var(--color-surface-muted)]"
+            className="block cursor-pointer px-4 py-2 text-sm font-normal text-[var(--color-ink-900)] hover:bg-[var(--color-ink-50)]"
             href="/settings"
             onClick={() => setOpen(false)}
             role="menuitem"
@@ -109,7 +109,7 @@ export function UserMenu() {
             Settings
           </Link>
           <button
-            className="block w-full px-4 py-2 text-left text-sm text-[var(--color-ink-900)] hover:bg-[var(--color-surface-muted)]"
+            className="block w-full cursor-pointer px-4 py-2 text-left text-sm font-normal text-[var(--color-ink-900)] hover:bg-[var(--color-ink-50)]"
             onClick={handleSignOut}
             role="menuitem"
             type="button"

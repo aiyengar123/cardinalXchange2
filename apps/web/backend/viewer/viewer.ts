@@ -1,3 +1,5 @@
+import { getUserDisplayName } from "@cardinalxchange/db";
+
 import { getViewerFromSession } from "@/backend/auth";
 
 export type Viewer = {
@@ -33,9 +35,12 @@ export const ANONYMOUS_VIEWER: Viewer = {
 export async function getViewer(): Promise<Viewer> {
   const session = await getViewerFromSession();
   if (session) {
+    const displayName =
+      (await getUserDisplayName(session.userId)) ??
+      (session.name?.trim() || session.email);
     return {
       id: session.userId,
-      displayName: session.name?.trim() || session.email,
+      displayName,
       meta: session.email,
       role: "student",
       source: "session",

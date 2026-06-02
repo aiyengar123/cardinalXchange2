@@ -20,26 +20,24 @@ export function AnswerList({
     answers.length === 0 ? "Answers" : `Answers (${answers.length})`;
 
   return (
-    <section
-      aria-labelledby="answers-heading"
-      aria-live="polite"
-      className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-6 pt-5 pb-2"
-    >
+    <section aria-labelledby="answers-heading" aria-live="polite">
       <h2
-        className="border-b border-[var(--color-border-default)] pb-2 text-lg font-semibold text-[var(--color-ink-900)]"
+        className="mb-3 text-lg font-semibold text-[var(--color-ink-900)]"
         id="answers-heading"
       >
         {heading}
       </h2>
 
       {answers.length === 0 ? (
-        <p className="py-6 text-sm text-[var(--color-ink-500)]">
-          No answers yet. Add the first one below.
-        </p>
+        <div className="rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] px-6 py-6">
+          <p className="text-sm text-[var(--color-ink-500)]">
+            No answers yet. Add the first one below.
+          </p>
+        </div>
       ) : (
-        <ul className="divide-y divide-[var(--color-ink-100)]">
+        <ul className="flex flex-col gap-3">
           {answers.map((answer) => (
-            <li className="flex gap-4 py-5" key={answer.id}>
+            <li className="flex items-start gap-3" key={answer.id}>
               <div className="shrink-0">
                 <VoteButtons
                   answerId={answer.id}
@@ -48,9 +46,9 @@ export function AnswerList({
                   questionId={questionId}
                 />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 flex-1 flex-col rounded-lg border border-[var(--color-border-default)] bg-[var(--color-surface-base)] p-5">
                 <Markdown source={answer.body} />
-                <p className="mt-3 text-xs text-[var(--color-ink-500)]">
+                <p className="mt-3 self-end text-xs text-[var(--color-ink-500)]">
                   Answer by{" "}
                   <span className="font-medium text-[var(--color-ink-700)]">
                     {answer.author}

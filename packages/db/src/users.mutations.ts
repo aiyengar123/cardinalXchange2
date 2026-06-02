@@ -8,6 +8,18 @@ export async function updateUserDisplayName(
     where: { id: userId },
     data: { displayName },
   });
+
+  const authorName = displayName?.trim() || null;
+  if (authorName) {
+    await prisma.question.updateMany({
+      where: { authorId: userId },
+      data: { authorName },
+    });
+    await prisma.answer.updateMany({
+      where: { authorId: userId },
+      data: { authorName },
+    });
+  }
 }
 
 /**

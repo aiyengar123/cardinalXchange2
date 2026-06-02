@@ -49,7 +49,9 @@ export async function listAnswers(questionId: string): Promise<AnswerDto[]> {
   }
 
   const viewerId = viewer.isAuthenticated ? viewer.id : undefined;
-  return answers.map((a) => toAnswerDto(a, viewerId));
+  return answers
+    .map((a) => toAnswerDto(a, viewerId))
+    .sort((a, b) => b.voteScore - a.voteScore);
 }
 
 export async function voteAnswer(
