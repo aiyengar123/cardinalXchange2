@@ -255,7 +255,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
     <form className="flex flex-col gap-6" noValidate onSubmit={onSubmit}>
       <div className="flex flex-col gap-2">
         <label
-          className="text-sm font-medium text-[var(--color-ink-900)]"
+          className="text-base font-semibold text-[var(--color-cardinal-500)]"
           htmlFor={titleId}
         >
           Title
@@ -301,7 +301,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
 
       <div className="flex flex-col gap-2">
         <label
-          className="text-sm font-medium text-[var(--color-ink-900)]"
+          className="text-base font-semibold text-[var(--color-cardinal-500)]"
           htmlFor={bodyId}
         >
           Details
@@ -416,7 +416,7 @@ export function AskForm({ initialDraft }: AskFormProps) {
 
       <div className="flex flex-col gap-2">
         <label
-          className="text-sm font-medium text-[var(--color-ink-900)]"
+          className="text-base font-semibold text-[var(--color-cardinal-500)]"
           htmlFor={tagsId}
         >
           Tags

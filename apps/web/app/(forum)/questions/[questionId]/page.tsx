@@ -5,6 +5,7 @@ import {
   AnswerList,
   QuestionDetail,
 } from "@/features/questions";
+import { RecordView } from "@/features/questions/components/record-view";
 import { HttpError } from "@/backend/http/http";
 import { getQuestionDetail } from "@/backend/questions/questions.service";
 
@@ -29,6 +30,7 @@ export default async function QuestionDetailPage({
 
   return (
     <div className="flex flex-col gap-8 py-2">
+      <RecordView slug={question.slug} title={question.title} />
       <QuestionDetail question={question} />
       <div className="flex">
         <AnswerComposer questionId={question.slug} />

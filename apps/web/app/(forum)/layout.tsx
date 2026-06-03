@@ -12,7 +12,6 @@ export default function ForumLayout({ children }: { children: ReactNode }) {
     <PageShell
       containerClassName="mx-auto max-w-[var(--shell-max-width)] px-4 sm:px-6"
       mainMaxWidthClass="max-w-none"
-      sideRail={null}
     >
       {children}
     </PageShell>
