@@ -4,7 +4,8 @@ import { listTagsForIndex } from "@/backend/tags/tags.service";
 import { HistoryRail } from "@/features/shell/components/history-rail";
 
 export async function SideRail() {
-  const tags = (await listTagsForIndex()).filter((t) => t.questionCount > 0);
+  const allTags = await listTagsForIndex().catch(() => []);
+  const tags = allTags.filter((t) => t.questionCount > 0);
 
   return (
     <aside
