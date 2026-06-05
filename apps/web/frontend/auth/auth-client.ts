@@ -1,14 +1,12 @@
 "use client";
 
 import { createAuthClient } from "better-auth/react";
-import { magicLinkClient } from "better-auth/client/plugins";
 
 // Type annotation intentionally widened: Better Auth's inferred client type
 // references a non-portable internal symbol (`InferUserUpdateCtx`), so we
 // access methods through narrow re-exports instead of via a named const.
 const client = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  plugins: [magicLinkClient()],
 });
 
 export const signIn = client.signIn;
