@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 const STORAGE_KEY = "cxc:viewed-questions";
-const MAX_HISTORY = 10;
+const MAX_HISTORY = 7;
 
 export type ViewedQuestion = {
   slug: string;
@@ -29,7 +29,10 @@ export function recordView(slug: string, title: string): void {
 export function getViewHistory(): ViewedQuestion[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const history: ViewedQuestion[] = raw ? JSON.parse(raw) : [];
+    // Cap on read too so entries stored under an older, larger limit
+    // don't overflow the rail.
+    return history.slice(0, MAX_HISTORY);
   } catch {
     return [];
   }

@@ -3,9 +3,15 @@ import Link from "next/link";
 import { listTagsForIndex } from "@/backend/tags/tags.service";
 import { HistoryRail } from "@/features/shell/components/history-rail";
 
+const MAX_RAIL_TAGS = 7;
+
 export async function SideRail() {
   const allTags = await listTagsForIndex().catch(() => []);
-  const tags = allTags.filter((t) => t.questionCount > 0);
+  // Tags arrive ordered by question count desc, so this keeps the top 7;
+  // the full list lives on /tags.
+  const tags = allTags
+    .filter((t) => t.questionCount > 0)
+    .slice(0, MAX_RAIL_TAGS);
 
   return (
     <aside
