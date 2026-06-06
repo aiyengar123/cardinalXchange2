@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowDown } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { MessageList } from "@/features/cxc-ai/components/message-list";
@@ -22,7 +21,6 @@ export function ChatShell({
   initialMessages,
   isNewChat = false,
 }: ChatShellProps) {
-  const router = useRouter();
   const { error, messages, regenerate, sendMessage, status, stop } = useCxcChat(
     {
       chatId,
@@ -44,9 +42,20 @@ export function ChatShell({
     if (!isNewChat || replacedRef.current) return;
     if (messages.some((message) => message.role === "user")) {
       replacedRef.current = true;
-      router.replace(`/cxc-ai/${encodeURIComponent(chatId)}`);
+      // Shallow URL swap only. A `router.replace()` here server-renders
+      // `/cxc-ai/[chatId]` and races `ensureAiChatSession`'s insert in the
+      // streaming route — when the page render wins (reliably, in prod,
+      // where auth + retrieval run before the insert), `findAiChatSnapshot`
+      // sees no row and 404s mid-conversation. `history.replaceState` keeps
+      // the streaming UI mounted; the dynamic page only needs to resolve on
+      // refresh/direct visits, by which time the row exists.
+      window.history.replaceState(
+        null,
+        "",
+        `/cxc-ai/${encodeURIComponent(chatId)}`,
+      );
     }
-  }, [chatId, isNewChat, messages, router]);
+  }, [chatId, isNewChat, messages]);
 
   const promptStatus = mapStatus(status);
 
