@@ -19,7 +19,7 @@ export const DEFAULT_FEED_TAKE = 50;
 export async function listQuestionRecords(
   args: ListQuestionRecordsArgs = {},
 ): Promise<QuestionFeedRecord[]> {
-  const { tag, sort = "active", take = DEFAULT_FEED_TAKE } = args;
+  const { tag, sort = "newest", take = DEFAULT_FEED_TAKE } = args;
   const where: Prisma.QuestionWhereInput = {};
 
   if (tag && tag.trim().length > 0) {
@@ -40,8 +40,10 @@ export async function listQuestionRecords(
     where.answers = { some: {} };
   }
 
+  // Every feed tab (Newest / Answered / Unanswered) lists latest-created
+  // first; only the legacy "active" sort orders by activity.
   const orderBy: Prisma.QuestionOrderByWithRelationInput =
-    sort === "newest" ? { createdAt: "desc" } : { lastActivityAt: "desc" };
+    sort === "active" ? { lastActivityAt: "desc" } : { createdAt: "desc" };
 
   return prisma.question.findMany({
     where,
@@ -68,10 +70,13 @@ export type SearchQuestionRecordsArgs = {
 
 /**
  * Postgres-backed search over Question + Answer text. Ranking is two-pass:
- *   1. Pull a candidate set via case-insensitive `contains` across title,
- *      body, searchText, answer body, and tag label.
- *   2. Score each candidate so title and tag matches outrank body-only
- *      matches, with a small boost when the question has any answers.
+ *   1. Tokenize the query into terms and pull a candidate set via
+ *      case-insensitive `contains` per term across title, body, searchText,
+ *      answer body, and tag label. A question qualifies when any term hits —
+ *      multi-word queries no longer require the whole phrase verbatim.
+ *   2. Score each candidate per term so title and tag matches outrank
+ *      body-only matches, with an extra boost when the full phrase appears
+ *      and a small boost when the question has any answers.
  *
  * The tag filter is exclusive: passing `tags` restricts the candidate set
  * to questions that carry one of the supplied tag slugs.
@@ -84,6 +89,7 @@ export async function searchQuestionRecords(
     typeof args === "string" ? { query: args, tags: legacyTags } : args;
 
   const trimmedQuery = normalized.query.trim();
+  const queryTerms = tokenizeQuery(trimmedQuery);
   const tagSlugs = normalizeTagLabels(normalized.tags ?? []).map(
     (tag) => tag.slug,
   );
@@ -91,28 +97,9 @@ export async function searchQuestionRecords(
   const filters: Prisma.QuestionWhereInput[] = [];
 
   if (trimmedQuery.length > 0) {
+    const needles = queryTerms.length > 0 ? queryTerms : [trimmedQuery];
     filters.push({
-      OR: [
-        { title: { contains: trimmedQuery, mode: "insensitive" } },
-        { body: { contains: trimmedQuery, mode: "insensitive" } },
-        { searchText: { contains: trimmedQuery, mode: "insensitive" } },
-        {
-          answers: {
-            some: {
-              body: { contains: trimmedQuery, mode: "insensitive" },
-            },
-          },
-        },
-        {
-          tags: {
-            some: {
-              tag: {
-                label: { contains: trimmedQuery, mode: "insensitive" },
-              },
-            },
-          },
-        },
-      ],
+      OR: needles.flatMap((needle) => textMatchFilters(needle)),
     });
   }
 
@@ -143,12 +130,12 @@ export async function searchQuestionRecords(
     return candidates.slice(0, limit);
   }
 
-  const needle = trimmedQuery.toLowerCase();
+  const phrase = trimmedQuery.toLowerCase();
 
   return candidates
     .map((question) => ({
       question,
-      score: rankQuestion(question, needle),
+      score: rankQuestion(question, phrase, queryTerms),
     }))
     .sort((first, second) => {
       if (second.score !== first.score) {
@@ -205,28 +192,78 @@ function clampLimit(limit: number): number {
   return Math.min(Math.floor(limit), 50);
 }
 
-function rankQuestion(question: QuestionRecord, needle: string): number {
+function tokenizeQuery(query: string): string[] {
+  const terms = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/u)
+    .filter((term) => term.length >= 2);
+  return [...new Set(terms)].slice(0, 8);
+}
+
+function textMatchFilters(needle: string): Prisma.QuestionWhereInput[] {
+  return [
+    { title: { contains: needle, mode: "insensitive" } },
+    { body: { contains: needle, mode: "insensitive" } },
+    { searchText: { contains: needle, mode: "insensitive" } },
+    {
+      answers: {
+        some: {
+          body: { contains: needle, mode: "insensitive" },
+        },
+      },
+    },
+    {
+      tags: {
+        some: {
+          tag: {
+            label: { contains: needle, mode: "insensitive" },
+          },
+        },
+      },
+    },
+  ];
+}
+
+function rankQuestion(
+  question: QuestionRecord,
+  phrase: string,
+  terms: string[],
+): number {
+  const needles = terms.length > 0 ? terms : [phrase];
+  const title = question.title.toLowerCase();
+  const body = question.body.toLowerCase();
   let score = 0;
 
-  if (question.title.toLowerCase().includes(needle)) {
-    score += 6;
-  }
+  for (const needle of needles) {
+    if (title.includes(needle)) {
+      score += 6;
+    }
 
-  for (const link of question.tags) {
-    if (link.tag.label.toLowerCase().includes(needle)) {
-      score += 4;
-      break;
+    for (const link of question.tags) {
+      if (link.tag.label.toLowerCase().includes(needle)) {
+        score += 4;
+        break;
+      }
+    }
+
+    if (body.includes(needle)) {
+      score += 2;
+    }
+
+    for (const answer of question.answers) {
+      if (answer.body.toLowerCase().includes(needle)) {
+        score += 1;
+        break;
+      }
     }
   }
 
-  if (question.body.toLowerCase().includes(needle)) {
-    score += 2;
-  }
-
-  for (const answer of question.answers) {
-    if (answer.body.toLowerCase().includes(needle)) {
-      score += 1;
-      break;
+  // Whole-phrase hits outrank scattered per-term hits.
+  if (terms.length > 1) {
+    if (title.includes(phrase)) {
+      score += 8;
+    } else if (body.includes(phrase)) {
+      score += 3;
     }
   }
 
