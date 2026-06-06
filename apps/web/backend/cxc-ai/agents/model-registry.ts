@@ -19,18 +19,18 @@ type RegistryEntry = {
 const registry: Record<LogicalModelName, RegistryEntry> = {
   "chat-agent": {
     provider: "openai",
-    model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
+    model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
   },
   "research-subagent": {
     provider: "openai",
     model:
       process.env.OPENAI_RESEARCH_MODEL ??
       process.env.OPENAI_MODEL ??
-      "gpt-5-mini",
+      "gpt-4.1-mini",
   },
   title: {
     provider: "openai",
-    model: "gpt-5-mini",
+    model: "gpt-4.1-mini",
   },
 };
 
@@ -38,7 +38,10 @@ export function getModel(name: LogicalModelName): LanguageModel {
   const entry = registry[name];
   switch (entry.provider) {
     case "openai":
-      return openai(entry.model);
+      // `openai.chat()` pins the Chat Completions API. The provider default
+      // (`openai()`) routes through the newer Responses API, which
+      // endpoint-restricted project keys reject with `invalid_api_key`.
+      return openai.chat(entry.model);
     default: {
       const provider: never = entry.provider;
       throw new Error(`Unknown provider: ${String(provider)}`);

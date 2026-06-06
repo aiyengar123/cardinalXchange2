@@ -32,7 +32,9 @@ import type {
   AiChatSnapshot,
 } from "@/backend/http/contracts";
 
-export async function createAiChatSession(title = "New CXC AI chat"): Promise<AiChatSession> {
+export async function createAiChatSession(
+  title = "New CXC AI chat",
+): Promise<AiChatSession> {
   const record = await createAiChatSessionRecord(title);
   return toSessionDto(record);
 }
@@ -45,7 +47,9 @@ export async function ensureAiChatSession(
   return toSessionDto(record);
 }
 
-export async function getAiChatSnapshot(chatId: string): Promise<AiChatSnapshot> {
+export async function getAiChatSnapshot(
+  chatId: string,
+): Promise<AiChatSnapshot> {
   const record = await getAiChatSessionRecord(chatId);
   if (!record) {
     const session = await ensureAiChatSession(chatId);
@@ -124,7 +128,11 @@ type StreamCxcAiTurnArgs = {
  * staying connected. When no model is configured, falls back to an
  * extractive answer derived from `sources`.
  */
-export function streamCxcAiTurn({ chatId, messages, sources }: StreamCxcAiTurnArgs) {
+export function streamCxcAiTurn({
+  chatId,
+  messages,
+  sources,
+}: StreamCxcAiTurnArgs) {
   const latestUserText = getLatestUserText(messages);
 
   const response = createUIMessageStreamResponse({
@@ -176,7 +184,8 @@ export function streamCxcAiTurn({ chatId, messages, sources }: StreamCxcAiTurnAr
         }
 
         const result = streamText({
-          model: openai(cxcAiModelName),
+          // Chat Completions API on purpose — see model-registry.getModel.
+          model: openai.chat(cxcAiModelName),
           system: buildCxcAiSystemPrompt(sources),
           messages: await convertToModelMessages(messages),
           tools: createCxcAiTools({ chatId }),
@@ -276,7 +285,9 @@ function inferTitle(messages: AiChatMessage[]): string {
     return "New CXC AI chat";
   }
 
-  return firstUserText.length > 60 ? `${firstUserText.slice(0, 57)}...` : firstUserText;
+  return firstUserText.length > 60
+    ? `${firstUserText.slice(0, 57)}...`
+    : firstUserText;
 }
 
 function toPersistedMessageInput(message: AiChatMessage) {
