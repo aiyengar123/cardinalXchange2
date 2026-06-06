@@ -19,7 +19,7 @@ export async function findQuestionsForFeed(
 ): Promise<QuestionFeedRecord[]> {
   const queryArgs: ListQuestionRecordsArgs = {
     tag: args.tag,
-    sort: args.sort ?? "active",
+    sort: args.sort ?? "newest",
   };
 
   return listQuestionRecords(queryArgs);

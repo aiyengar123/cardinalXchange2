@@ -100,7 +100,7 @@ describe("listQuestionsForFeed", () => {
     const result = await listQuestionsForFeed();
 
     expect(result).toEqual([]);
-    expect(list).toHaveBeenCalledWith({ tag: undefined, sort: "active" });
+    expect(list).toHaveBeenCalledWith({ tag: undefined, sort: "newest" });
   });
 
   it("maps feed records into summary DTOs", async () => {
@@ -146,10 +146,10 @@ describe("listQuestionsForFeed", () => {
 
     await listQuestionsForFeed({ tag: "algorithms" });
 
-    expect(list).toHaveBeenCalledWith({ tag: "algorithms", sort: "active" });
+    expect(list).toHaveBeenCalledWith({ tag: "algorithms", sort: "newest" });
   });
 
-  it("defaults sort to 'active' but respects an explicit sort", async () => {
+  it("defaults sort to 'newest' but respects an explicit sort", async () => {
     list.mockResolvedValueOnce([]);
     await listQuestionsForFeed({ sort: "newest" });
     expect(list).toHaveBeenLastCalledWith({ tag: undefined, sort: "newest" });
