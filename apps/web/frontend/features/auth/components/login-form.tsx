@@ -4,22 +4,36 @@ import { useSearchParams } from "next/navigation";
 import { useState, useCallback } from "react";
 
 import { signIn } from "@/frontend/auth/auth-client";
+import { STANFORD_EMAIL_REQUIRED_ERROR } from "@/data/auth-errors.data";
 
 type FormState =
   | { kind: "idle" }
   | { kind: "submitting" }
   | { kind: "error"; message: string };
 
+function oauthErrorMessage(code: string): string {
+  if (code === STANFORD_EMAIL_REQUIRED_ERROR) {
+    return "Only @stanford.edu Google accounts can sign in. Pick your Stanford account and try again.";
+  }
+  return "Could not sign in with Google. Try again.";
+}
+
 export function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next") ?? "/questions";
-  const [state, setState] = useState<FormState>({ kind: "idle" });
+  const oauthError = searchParams?.get("error") ?? null;
+  const [state, setState] = useState<FormState>(
+    oauthError
+      ? { kind: "error", message: oauthErrorMessage(oauthError) }
+      : { kind: "idle" },
+  );
 
   const onGoogleSignIn = useCallback(async () => {
     setState({ kind: "submitting" });
     const { error } = await signIn.social({
       provider: "google",
       callbackURL: next,
+      errorCallbackURL: `/login?next=${encodeURIComponent(next)}`,
     });
     if (error) {
       setState({
@@ -36,7 +50,7 @@ export function LoginForm() {
           Sign in to cardinalXchange
         </h1>
         <p className="text-sm text-[var(--color-ink-700)]">
-          Use your Google account to sign in.
+          Use your Stanford Google account (@stanford.edu) to sign in.
         </p>
       </header>
 

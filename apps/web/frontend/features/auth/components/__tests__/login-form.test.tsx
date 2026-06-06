@@ -54,8 +54,33 @@ describe("LoginForm", () => {
       expect(socialSignInMock).toHaveBeenCalledWith({
         provider: "google",
         callbackURL: "/ask",
+        errorCallbackURL: "/login?next=%2Fask",
       });
     });
+  });
+
+  it("shows the Stanford-only message when the OAuth callback rejects the email", () => {
+    searchParamsGet.mockImplementation((key: string) =>
+      key === "error" ? "stanford_email_required" : null,
+    );
+
+    render(<LoginForm />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /only @stanford\.edu google accounts/i,
+    );
+  });
+
+  it("shows a generic message for unrecognized OAuth callback errors", () => {
+    searchParamsGet.mockImplementation((key: string) =>
+      key === "error" ? "unable_to_create_user" : null,
+    );
+
+    render(<LoginForm />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /could not sign in with google/i,
+    );
   });
 
   it("shows the API error message when signIn.social returns an error", async () => {
